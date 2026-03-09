@@ -1,11 +1,14 @@
-
-import './App.css';
-import Navbar from './components/Navbar';
+import React from 'react';
+import Home from './pages/Home'; // Certifique-se de que o caminho está correto
 
 function App() {
   return (
-    <div>
-      <Navbar />
+    <div className="App">
+      {/* Chamamos apenas a Home aqui. 
+        Como a Home já contém Navbar, Hero, etc., 
+        tudo aparecerá em cascata.
+      */}
+      <Home />
     </div>
   );
 }

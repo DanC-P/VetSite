@@ -1,34 +1,53 @@
 import React from 'react';
 
 const Categories = ({ categoriesData }) => {
-
-    if (!categoriesData || categoriesData.length == 0) {
-        return (
-            <div className="text-center py-10">
-                <p className="text-gray-500 italic">Nenhuma categoria cadastrada no momento.</p>
-            </div>
-        );
-    }
-
-    return(
-        <section className="py-16 bg-white">
-            <div className="max-w-7xl mx-auto px-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    {categoriesData.map((category) => (
-                        <div key={category.id} className="border rounded-2xl p-6 text-center hover:shadow-lg transition-all">
-                            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                                {/* Aqui puxamos a URL da imagem da categoria vinda do banco */}
-                                <img src={category.image_url || 'placeholder-paw.png'} alt={category.name} className="w-10 h-10 object-contain" />
-                            </div>
-                            <h3 className="font-bold text-gray-800">{category.name}</h3>
-                            {/* Quantidade real calculada no backend */}
-                            <p className="text-sm text-gray-500">{category.product_count} produtos</p>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </section>
+  // Verificação de segurança caso não venham dados
+  if (!categoriesData || categoriesData.length === 0) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-gray-500 italic">Nenhuma categoria cadastrada no momento.</p>
+      </div>
     );
+  }
+
+  return (
+    <section id="categorias" className="py-12 bg-white border-b border-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Título da seção seguindo o padrão do Canva */}
+        <div className="text-center mb-10">
+          <h2 className="text-2xl font-bold text-gray-800">Explore por Categorias</h2>
+        </div>
+
+        <div className="flex flex-wrap justify-center gap-8 md:gap-12">
+          {categoriesData.map((category) => (
+            <button 
+              key={category.id} 
+              className="group flex flex-col items-center gap-3 transition-transform hover:scale-105 focus:outline-none"
+            >
+              {/* O círculo colorido que o Canva usa */}
+              <div className="w-20 h-20 rounded-full bg-teal-50 flex items-center justify-center border-2 border-transparent group-hover:border-teal-400 group-hover:bg-white shadow-sm transition-all duration-300">
+                <img 
+                  src={category.image_url || 'placeholder-paw.png'} 
+                  alt={category.name} 
+                  className="w-12 h-12 object-contain group-hover:rotate-12 transition-transform"
+                />
+              </div>
+
+              {/* Textos dinâmicos vindos do seu banco */}
+              <div className="text-center">
+                <h3 className="font-bold text-gray-700 group-hover:text-teal-600 transition-colors text-sm md:text-base">
+                  {category.name}
+                </h3>
+                <p className="text-xs text-gray-400 font-medium uppercase tracking-tighter">
+                  {category.product_count} itens
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 };
 
 export default Categories;
