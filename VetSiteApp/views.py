@@ -1,30 +1,34 @@
-from django.http import HttpResponse
-from django.shortcuts import render
 from rest_framework import viewsets, permissions
-
+from rest_framework.authentication import SessionAuthentication
 from .models import Category, Product, Banner, ConfigurationSite
-from .serializers import CategorySerializer, ProductSerializer, BannerSerializer, ConfigurationSiteSerializer
+from .serializers import (
+    CategorySerializer, 
+    ProductSerializer, 
+    BannerSerializer, 
+    ConfigurationSiteSerializer
+)
 
-class ProductViewSet(viewsets.ModelViewSet):
+# BaseViewSet para evitar repetição de código (DRY - Don't Repeat Yourself)
+class BaseViewSet(viewsets.ModelViewSet):
+    """
+    Classe base para garantir que todos os ViewSets usem 
+    a mesma autenticação e permissão.
+    """
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+class ProductViewSet(BaseViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(BaseViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-class BannerViewSet(viewsets.ModelViewSet):
+class BannerViewSet(BaseViewSet):
     queryset = Banner.objects.all()
     serializer_class = BannerSerializer
 
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-class ConfigurationSiteViewSet(viewsets.ModelViewSet):
+class ConfigurationSiteViewSet(BaseViewSet):
     queryset = ConfigurationSite.objects.all()
     serializer_class = ConfigurationSiteSerializer
-
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
