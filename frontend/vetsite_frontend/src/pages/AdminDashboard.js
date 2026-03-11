@@ -224,30 +224,64 @@ const AdminDashboard = () => {
 
           {/* Tabela de Produtos */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-             <table className="w-full text-left">
-               <thead className="bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                 <tr>
-                   <th className="px-6 py-4">Produto</th>
-                   <th className="px-6 py-4">Preço</th>
-                   <th className="px-6 py-4 text-center">Ações</th>
-                 </tr>
-               </thead>
-               <tbody className="divide-y divide-gray-100">
-                 {products.map((prod) => (
-                   <tr key={prod.id} className="hover:bg-gray-50 transition-colors">
-                     <td className="px-6 py-4 flex items-center gap-3">
-                       <img src={prod.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
-                       <span className="font-bold text-gray-700">{prod.title}</span>
-                     </td>
-                     <td className="px-6 py-4 text-sm font-semibold text-gray-600">R$ {prod.price}</td>
-                     <td className="px-6 py-4 flex justify-center gap-2">
-                       <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 size={16} /></button>
-                       <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
-                     </td>
-                   </tr>
-                 ))}
-               </tbody>
-             </table>
+              <div className="px-8 py-6 border-b border-gray-200 flex justify-between items-center">
+                  <h2 className="text-xl font-bold text-gray-800">Produtos Cadastrados</h2>
+                  <p className="text-sm text-gray-500 font-medium">{products.length} produto(s)</p>
+              </div>
+              <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                      <thead className="bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                          <tr>
+                              <th className="px-8 py-4">Produto</th>
+                              <th className="px-8 py-4">Preço</th>
+                              <th className="px-8 py-4">Status</th>
+                              <th className="px-8 py-4 text-center">Ações</th>
+                          </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                          {products.length > 0 ? (
+                              products.map((prod) => (
+                                  <tr key={prod.id} className="hover:bg-gray-50 transition-colors">
+                                      <td className="px-8 py-4 flex items-center gap-3">
+                                          <img 
+                                              src={prod.image} 
+                                              alt="" 
+                                              className="w-12 h-12 rounded-lg object-cover border border-gray-100" 
+                                              onError={(e) => e.target.src='https://via.placeholder.com/48?text=Pet'}
+                                          />
+                                          <div>
+                                              <div className="font-bold text-gray-800">{prod.title}</div>
+                                              <div className="text-xs text-gray-400">{prod.fr_group_name || 'Geral'}</div>
+                                          </div>
+                                      </td>
+                                      <td className="px-8 py-4">
+                                          <div className="text-sm font-bold text-gray-700">R$ {prod.price}</div>
+                                          {prod.old_price && <div className="text-xs text-gray-400 line-through">R$ {prod.old_price}</div>}
+                                      </td>
+                                      <td className="px-8 py-4">
+                                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${prod.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                              {prod.is_active ? 'Ativo' : 'Inativo'}
+                                          </span>
+                                      </td>
+                                      <td className="px-8 py-4">
+                                          <div className="flex justify-center gap-2">
+                                              <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit2 size={16} /></button>
+                                              <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                                          </div>
+                                      </td>
+                                  </tr>
+                              ))
+                          ) : (
+                              <tr>
+                                  <td colSpan="4" className="px-8 py-12 text-center text-gray-500 italic">
+                                      <Package className="mx-auto mb-2 opacity-20" size={48} />
+                                      Nenhum produto cadastrado ainda.
+                                  </td>
+                              </tr>
+                          )}
+                      </tbody>
+                  </table>
+              </div>
           </div>
         </div>
       </main>

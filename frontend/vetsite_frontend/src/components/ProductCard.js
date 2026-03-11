@@ -29,9 +29,12 @@ const ProductCard = ({ product }) => {
         {/* 3. Ajuste da Imagem: o Django envia o caminho do arquivo */}
         {image ? (
           <img 
-            src={image} 
+            src={image.startsWith('http') ? image : `http://127.0.0.1:8000${image}`} 
             alt={title} 
             className="w-full h-full object-contain mix-blend-multiply" 
+            onError={(e) => {
+              e.target.src = 'https://via.placeholder.com/200?text=PetShop'; // Imagem reserva caso falhe
+            }}
           />
         ) : (
           <div className="text-gray-300 italic text-xs">Sem imagem</div>

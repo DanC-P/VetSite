@@ -41,7 +41,7 @@ const Home = () => {
     loadData();
   }, []);
 
-  const featured = products.find(p => p.is_featured);
+  const featured = products.find(p => p.is_featured === true) || products[0];
 
   return (
     <>
