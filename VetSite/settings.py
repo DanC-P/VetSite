@@ -97,12 +97,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # --- SEGURANÇA E CORS ---
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-]
+CORS_ORIGIN_ALLOW_ALL = True
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
@@ -114,11 +109,13 @@ CSRF_TRUSTED_ORIGINS = [
 # Configurações de Cookie para facilitar a vida do React
 CSRF_COOKIE_HTTPONLY = False  # Permite que o React leia o cookie CSRF
 SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_NAME = "csrftoken"
+ENSURE_CSRF_COOKIE = True
 
 # --- DJANGO REST FRAMEWORK ---
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',

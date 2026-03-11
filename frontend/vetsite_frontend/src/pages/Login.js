@@ -27,11 +27,13 @@ const Login = () => {
         
         try {
             // USAMOS URL RELATIVA: O Django agora serve o React, então o domínio é o mesmo.
+            const token = getCookie('csrftoken');
+
             const response = await fetch('/api-auth/login/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-CSRFToken': token || '',
                 },
                 body: new URLSearchParams({
                     'username': username,

@@ -96,9 +96,9 @@ const AdminDashboard = () => {
     dataToSend.append('price', formData.price);
     if (formData.old_price) dataToSend.append('old_price', formData.old_price);
     dataToSend.append('description', formData.description);
-    dataToSend.append('fr_group', formData.category); // 'fr_group' deve ser o nome no seu models.py
-    dataToSend.append('is_active', formData.is_active);
-    dataToSend.append('is_featured', formData.is_featured);
+    dataToSend.append('fr_group_id', formData.category); // 'fr_group' deve ser o nome no seu models.py
+    dataToSend.append('is_active', formData.is_active ? 1 : 0);
+    dataToSend.append('is_featured', formData.is_featured ? 1 : 0);
     dataToSend.append('image', imageFile);
 
     try {

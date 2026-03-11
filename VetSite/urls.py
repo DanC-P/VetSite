@@ -13,10 +13,12 @@ urlpatterns = [
 
     # 3. Autenticação padrão do DRF (Essencial para o Login via React)
     path('api-auth/', include('rest_framework.urls')),
+]
 
-    # 4. ENTREGA O REACT: Qualquer rota que não seja /admin ou /api 
+urlpatterns += [
+    # ENTREGA O REACT: Qualquer rota que não seja /admin ou /api 
     # vai carregar o index.html do seu build do React.
-    re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),
+    re_path(r'^.*', TemplateView.as_view(template_name='index.html')),
 ]
 
 # Servir arquivos de mídia (imagens dos produtos) em desenvolvimento
