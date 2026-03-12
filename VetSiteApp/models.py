@@ -20,6 +20,7 @@ class Category (models.Model):
     name = models.CharField(max_length=300)
     slug = models.SlugField(unique=True, null=True, blank=True)
     cap_image = models.ImageField(upload_to='category/')
+    icon_name = models.CharField(max_length=50, default='Dog')
 
     def __str__(self):
         return self.name

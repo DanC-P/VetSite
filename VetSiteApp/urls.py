@@ -1,19 +1,24 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import SimpleRouter
 from .views import (
     ProductViewSet, 
     CategoryViewSet, 
     BannerViewSet, 
     ConfigurationSiteViewSet,
-    GetCSRFToken # Sua view de CSRF
+    GetCSRFToken
 )
 
+# O Router mapeia automaticamente as ações do ViewSet (list, create, update, destroy)
+router = SimpleRouter()
+router.register(r'products', ProductViewSet, basename='product')
+router.register(r'categories', CategoryViewSet, basename='category')
+router.register(r'banners', BannerViewSet, basename='banner')
+router.register(r'configuration', ConfigurationSiteViewSet, basename='configuration')
+
 urlpatterns = [
-    # Rota para pegar o Token CSRF (essencial para o React)
+    # Rota para o Token CSRF
     path('csrf_cookie/', GetCSRFToken.as_view(), name='csrf_cookie'),
     
-    # Rotas manuais para cada API
-    path('products/', ProductViewSet.as_view(), name='product-list'),
-    path('categories/', CategoryViewSet.as_view(), name='category-list'),
-    path('banners/', BannerViewSet.as_view(), name='banner-list'),
-    path('configuration/', ConfigurationSiteViewSet.as_view(), name='configuration-detail'),
+    # Inclui as rotas geradas pelo router
+    path('', include(router.urls)),
 ]

@@ -13,7 +13,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
 
     fr_group = CategorySerializer(read_only=True)
-
+    image = serializers.ImageField(required=False, allow_null=True) 
     fr_group_id = serializers.PrimaryKeyRelatedField(
         queryset = Category.objects.all(), source='fr_group', write_only=True
     )
