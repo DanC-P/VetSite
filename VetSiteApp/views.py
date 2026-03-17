@@ -2,6 +2,7 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Category, Product, Banner, ConfigurationSite
+from django.db.models import Count, Sum
 from .serializers import (
     CategorySerializer, 
     ProductSerializer, 
@@ -23,14 +24,19 @@ class GetCSRFToken(APIView): # Corrigido: APIView é para ações simples
 # Usar ModelViewSet permite que o Router crie rotas de Lista e Detalhe (ID) automaticamente.
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    # O ModelViewSet já faz o GET, POST, PUT, PATCH e DELETE sozinho. 
-    # Não precisa sobrescrever get() e post() a menos que queira lógica customizada.
+    
+    def get_queryset(self):
+        queryset = Product.objects.all()
+
+        is_home = self.request.query_params.get('home')
+        if is_home:
+            return queryset.filter(is_featured=True, is_active=True, stock_quantity__gt=0)
+        return queryset
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all()
+    queryset = Category.objects.annotate(product_count=Count('products')) # Adiciona contagem de produtos
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 

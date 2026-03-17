@@ -8,6 +8,7 @@ class Product(models.Model):
     image = models.ImageField(upload_to='products/')
     fr_group = models.ForeignKey('Category', on_delete=models.CASCADE, related_name='products')
     old_price = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    stock_quantity = models.PositiveIntegerField(default=0)
 
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
@@ -19,7 +20,6 @@ class Product(models.Model):
 class Category (models.Model):
     name = models.CharField(max_length=300)
     slug = models.SlugField(unique=True, null=True, blank=True)
-    cap_image = models.ImageField(upload_to='category/')
     icon_name = models.CharField(max_length=50, default='Dog')
 
     def __str__(self):

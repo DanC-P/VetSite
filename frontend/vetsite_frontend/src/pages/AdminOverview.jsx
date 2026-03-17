@@ -1,245 +1,236 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Package, Plus, Save, Trash2, UploadCloud, Edit2, Check, Star, X } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import {
+  Package,
+  Layers,
+  AlertTriangle,
+  TrendingUp,
+  CheckCircle2,
+  ArrowRight,
+  ShoppingCart,
+} from "lucide-react";
+import { Navigate, useNavigate } from "react-router-dom"; // Assumindo que você usa react-router
 
-const AdminOverview = ({ csrfToken }) => {
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  
-  // Estado do formulário baseado no código do Canva
-  const [formData, setFormData] = useState({
-    title: '',
-    price: '',
-    old_price: '',
-    category: '',
-    description: '',
-    is_active: true,
-    is_featured: false
+const AdminOverview = ({ onNavigateToCreate }) => {
+  const [data, setData] = useState({
+    products: [],
+    categories: [],
+    loading: true,
   });
-
-  const [imageFile, setImageFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const fileInputRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [prodRes, catRes] = await Promise.all([
+          fetch("/api/products/"),
+          fetch("/api/categories/"),
+        ]);
+        const products = await prodRes.json();
+        const categories = await catRes.json();
+        setData({ products, categories, loading: false });
+      } catch (err) {
+        console.error("Erro ao carregar dashboard:", err);
+        setData((prev) => ({ ...prev, loading: false }));
+      }
+    };
     fetchData();
   }, []);
 
-  const fetchData = async () => {
-    try {
-      const [prodRes, catRes] = await Promise.all([
-        fetch('/api/products/'),
-        fetch('/api/categories/')
-      ]);
-      const prods = await prodRes.json();
-      const cats = await catRes.json();
-      setProducts(prods);
-      setCategories(cats);
-    } catch (err) {
-      console.error("Erro ao carregar dados:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEdit = (product) => {
-    setEditingId(product.id);
-    setFormData({
-      title: product.title,
-      price: product.price,
-      old_price: product.old_price || '',
-      category: product.category,
-      description: product.description || '',
-      is_active: product.is_active,
-      is_featured: product.is_featured
-    });
-    setPreviewUrl(product.image);
-    setShowForm(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-  const data = new FormData();
-
-  // 1. Tratamento dos campos de texto e Categoria
-  Object.keys(formData).forEach(key => {
-    let value = formData[key];
-
-    // Se for o campo de categoria, precisamos garantir que vá o ID correto
-    if (key === 'category') {
-      const backendKey = 'fr_group_id'; // Nome que seu modelo espera
-      if (value && value !== "") {
-        data.append(backendKey, parseInt(value)); // Garante que é um número (PK)
-      }
-      // Se value for vazio, não damos append (o Django usará o valor atual ou null)
-    } else {
-      data.append(key, value);
-    }
-  });
-
-  // 2. Lógica da Imagem: Só envia se for um novo arquivo selecionado
-  if (imageFile instanceof File) {
-    data.append('image', imageFile);
+  if (data.loading) {
+    return (
+      <div className="p-12 text-center animate-pulse italic text-gray-400">
+        Gerando relatório estatístico...
+      </div>
+    );
   }
 
-  const url = editingId ? `/api/products/${editingId}/` : '/api/products/';
-  // PATCH é fundamental para atualizações onde nem tudo é enviado
-  const method = editingId ? 'PATCH' : 'POST';
+  // Cálculos para o Dashboard
+  const activeProducts = data.products.filter((p) => p.is_active).length;
+  const lowStockProducts = data.products.filter(
+    (p) => p.stock_quantity > 0 && p.stock_quantity <= 5,
+  );
+  const outOfStock = data.products.filter((p) => p.stock_quantity === 0).length;
+  const totalStockValue = data.products.reduce(
+    (acc, p) => acc + parseFloat(p.price) * (p.stock_quantity || 0),
+    0,
+  );
 
-  try {
-    const res = await fetch(url, {
-      method: method,
-      body: data,
-      headers: { 'X-CSRFToken': csrfToken }
-    });
-
-    if (res.ok) {
-      setShowForm(false);
-      setEditingId(null);
-      setImageFile(null);
-      fetchData();
-    } else {
-      const errorData = await res.json();
-      console.error("Erro do Django:", errorData);
-      alert("Erro ao salvar: " + JSON.stringify(errorData));
-    }
-  } catch (err) {
-    alert("Erro de conexão com o servidor");
-  }
-  };  
-
-  if (loading) return <div className="p-12 text-center italic text-gray-500">Carregando painel...</div>;
+  const stats = [
+    {
+      title: "Total Produtos",
+      value: data.products.length,
+      icon: Package,
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+    },
+    {
+      title: "Categorias",
+      value: data.categories.length,
+      icon: Layers,
+      color: "text-purple-600",
+      bg: "bg-purple-50",
+    },
+    {
+      title: "Ativos na Loja",
+      value: activeProducts,
+      icon: CheckCircle2,
+      color: "text-teal-600",
+      bg: "bg-teal-50",
+    },
+    {
+      title: "Valor em Estoque",
+      value: `R$ ${totalStockValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+      icon: TrendingUp,
+      color: "text-orange-600",
+      bg: "bg-orange-50",
+    },
+  ];
 
   return (
-    <div className="p-8 animate-in fade-in duration-500">
-      
-      {/* Botão de Atalho para Novo Produto */}
-      {!showForm && (
-        <div className="mb-8 flex justify-end">
-          <button 
-            onClick={() => { setShowForm(true); setEditingId(null); }}
-            className="px-6 py-3 bg-teal-600 text-white font-bold rounded-2xl shadow-lg shadow-teal-100 flex items-center gap-2 hover:bg-teal-700 transition-all"
+    <div className="p-8 max-w-7xl mx-auto w-full">
+      <header className="mb-10">
+        <h1 className="text-3xl font-black text-gray-800 tracking-tighter">
+          Dashboard Overview
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Bem-vindo de volta! Aqui está o resumo do seu inventário hoje.
+        </p>
+      </header>
+
+      {/* Grid de Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        {stats.map((s, i) => (
+          <div
+            key={i}
+            className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
           >
-            <Plus size={20} /> ADICIONAR PRODUTO
-          </button>
-        </div>
-      )}
-
-      {/* Seção do Formulário (O Form-Section do Canva) */}
-      {showForm && (
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 mb-8 animate-in slide-in-from-top-4">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-gray-800 italic uppercase tracking-tighter">
-              {editingId ? 'Editar Produto' : 'Novo Produto'}
-            </h2>
-            <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-red-500"><X /></button>
+            <div
+              className={`${s.bg} ${s.color} w-12 h-12 rounded-2xl flex items-center justify-center mb-4`}
+            >
+              <s.icon size={24} />
+            </div>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-wider">
+              {s.title}
+            </p>
+            <h3 className="text-2xl font-black text-gray-800">{s.value}</h3>
           </div>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-bold text-gray-600 mb-2">Título</label>
-                  <input 
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all"
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    placeholder="Ex: Ração Premium..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-600 mb-2">Categoria</label>
-                  <select 
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white"
-                    value={formData.category}
-                    onChange={(e) => setFormData({...formData, category: e.target.value})}
-                  >
-                    <option value="">Selecione...</option>
-                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </div>
-             </div>
+        ))}
+      </div>
 
-             <div className="grid grid-cols-2 gap-6">
-                <input 
-                   type="number" placeholder="Preço (R$)"
-                   className="px-4 py-3 rounded-xl border border-gray-200"
-                   value={formData.price}
-                   onChange={(e) => setFormData({...formData, price: e.target.value})}
-                />
-                <input 
-                   type="number" placeholder="Preço Antigo (R$)"
-                   className="px-4 py-3 rounded-xl border border-gray-200 text-gray-400"
-                   value={formData.old_price}
-                   onChange={(e) => setFormData({...formData, old_price: e.target.value})}
-                />
-             </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Alertas de Estoque Crítico */}
+        <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+          <div className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="text-orange-500" size={24} />
+              <h2 className="text-xl font-bold text-gray-800 uppercase italic tracking-tighter">
+                Atenção ao Estoque
+              </h2>
+            </div>
+            <span className="bg-orange-100 text-orange-600 px-4 py-1 rounded-full text-xs font-black">
+              {lowStockProducts.length + outOfStock} ALERTAS
+            </span>
+          </div>
 
-             <div className="flex gap-4">
-               <button type="submit" className="px-8 py-3 bg-teal-600 text-white font-black rounded-xl hover:bg-teal-700 flex items-center gap-2">
-                 <Save size={18} /> {editingId ? 'ATUALIZAR' : 'SALVAR PRODUTO'}
-               </button>
-               <button type="button" onClick={() => setShowForm(false)} className="px-8 py-3 bg-gray-100 text-gray-500 font-bold rounded-xl hover:bg-gray-200">
-                 CANCELAR
-               </button>
-             </div>
-          </form>
-        </div>
-      )}
-
-      {/* Tabela de Produtos Cadastrados */}
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-800 italic">Produtos no Inventário</h2>
-          <span className="text-xs font-black bg-gray-100 text-gray-500 px-3 py-1 rounded-full">
-            {products.length} ITENS
-          </span>
-        </div>
-        
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50/50">
-              <tr>
-                <th className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-widest">Produto</th>
-                <th className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-widest">Preço</th>
-                <th className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-widest">Status</th>
-                <th className="px-8 py-4 text-center text-xs font-black text-gray-400 uppercase tracking-widest">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {products.map((prod) => (
-                <tr key={prod.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-8 py-4 flex items-center gap-4">
-                    <img src={prod.image} className="w-10 h-10 rounded-lg object-cover border" alt="" />
-                    <div>
-                      <div className="font-bold text-gray-800">{prod.title}</div>
-                      <div className="text-[10px] text-teal-600 font-bold uppercase">{prod.fr_group_name}</div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-4">
-                    <span className="font-black text-gray-700 text-sm">R$ {prod.price}</span>
-                  </td>
-                  <td className="px-8 py-4">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${prod.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                      {prod.is_active ? 'Ativo' : 'Inativo'}
-                    </span>
-                  </td>
-                  <td className="px-8 py-4">
-                    <div className="flex justify-center gap-2">
-                      <button onClick={() => handleEdit(prod)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all">
-                        <Edit2 size={16} />
-                      </button>
-                      <button className="p-2 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
-                        <Trash2 size={16} />
+          <div className="p-4">
+            {lowStockProducts.length === 0 && outOfStock === 0 ? (
+              <div className="py-12 text-center text-gray-400 font-medium italic">
+                Tudo sob controle no estoque!
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {[
+                  ...(outOfStock > 0
+                    ? data.products.filter((p) => p.stock_quantity === 0)
+                    : []),
+                  ...lowStockProducts,
+                ]
+                  .slice(0, 5)
+                  .map((prod) => (
+                    <div
+                      key={prod.id}
+                      className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-2xl transition-all border border-transparent hover:border-gray-100"
+                    >
+                      <div className="flex items-center gap-4">
+                        <img
+                          src={prod.image}
+                          className="w-12 h-12 rounded-xl object-cover"
+                          alt=""
+                        />
+                        <div>
+                          <div className="font-bold text-gray-800">
+                            {prod.title}
+                          </div>
+                          <div
+                            className={`text-[10px] font-black uppercase ${prod.stock_quantity === 0 ? "text-red-500" : "text-orange-500"}`}
+                          >
+                            {prod.stock_quantity === 0
+                              ? "ESGOTADO"
+                              : `Apenas ${prod.stock_quantity} unidades`}
+                          </div>
+                        </div>
+                      </div>
+                      <button className="p-2 text-gray-400 hover:text-teal-600 transition-colors">
+                        <ArrowRight size={20} />
                       </button>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  ))}
+              </div>
+            )}
+          </div>
+          <div className="p-6 bg-gray-50/50 text-center">
+            <button className="text-sm font-bold text-teal-600 hover:underline">
+              Ver inventário completo
+            </button>
+          </div>
+        </div>
+
+        {/* Atalhos Rápidos & Ações */}
+        <div className="space-y-6">
+          <div className="bg-teal-600 rounded-[2.5rem] p-8 text-white shadow-xl shadow-teal-100 relative overflow-hidden group">
+            <ShoppingCart
+              className="absolute -right-4 -bottom-4 text-teal-500 opacity-20 group-hover:scale-110 transition-transform"
+              size={140}
+            />
+            <h3 className="text-2xl font-black mb-2 italic">Novo Produto</h3>
+            <p className="text-teal-100 text-sm mb-6 font-medium leading-relaxed">
+              Cadastre novos itens para sua loja agora mesmo.
+            </p>
+            <button
+              onClick={onNavigateToCreate}
+              className="bg-white text-teal-600 px-6 py-3 rounded-xl font-black text-sm hover:bg-teal-50 transition-colors"
+            >
+              IR PARA CADASTRO
+            </button>
+          </div>
+
+          <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm">
+            <h3 className="text-lg font-black text-gray-800 mb-4 uppercase italic">
+              Resumo de Atividade
+            </h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-500 font-medium">
+                  Produtos Ativos
+                </span>
+                <span className="font-bold text-gray-800">
+                  {activeProducts}
+                </span>
+              </div>
+              <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                <div
+                  className="bg-teal-500 h-full rounded-full"
+                  style={{
+                    width: `${(activeProducts / data.products.length) * 100}%`,
+                  }}
+                ></div>
+              </div>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                {((activeProducts / data.products.length) * 100).toFixed(1)}% do
+                catálogo está online
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

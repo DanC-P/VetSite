@@ -25,19 +25,31 @@ function getCookie(name) {
 const AdminDashboard = () => {
   const [activePage, setActivePage] = useState("dashboard");
   const [csrfToken, setCsrfToken] = useState("");
+  const [shouldShowForm, setShouldShowForm] = useState(false);
 
   useEffect(() => {
     // Pega o token uma vez para todos os filhos
     setCsrfToken(getCookie("csrftoken"));
   }, []);
 
+  const handleCreateProductShortcut = () => {
+    setShouldShowForm(true);
+    setActivePage("produtos");
+  };
+
   const renderContent = () => {
     if (activePage === "dashboard")
-      return <AdminOverview csrfToken={csrfToken} />;
+      return <AdminOverview onNavigateToCreate={handleCreateProductShortcut} />;
     if (activePage === "categorias")
       return <AdminCategory csrfToken={csrfToken} />;
     if (activePage === "produtos")
-      return <AdminProduct csrfToken={csrfToken} />;
+      return (
+        <AdminProduct
+          csrfToken={csrfToken}
+          initialOpenForm={shouldShowForm} // Passa o gatilho
+          onFormOpened={() => setShouldShowForm(false)} // Função para resetar o gatilho
+        />
+      );
     if (activePage === "configuracoes")
       return <AdminConfigSite csrfToken={csrfToken} />;
     return <AdminOverview csrfToken={csrfToken} />;

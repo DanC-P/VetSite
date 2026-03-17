@@ -8,7 +8,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ['id',
                   'name',
                   'slug',
-                  'cap_image']
+                  'icon_name']
 
 class ProductSerializer(serializers.ModelSerializer):
 
@@ -25,6 +25,8 @@ class ProductSerializer(serializers.ModelSerializer):
                   'slug',
                   'description',
                   'price',
+                  'old_price',
+                  'stock_quantity',
                   'image',
                   'fr_group',
                   'fr_group_id',

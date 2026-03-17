@@ -1,5 +1,32 @@
 import React from "react";
 
+import CategoryIcon from "./CategoryIcon";
+
+import {
+  Dog,
+  Cat,
+  Heart,
+  Bone,
+  Activity,
+  Soup,
+  Scissors,
+  ShieldCheck,
+  PawPrint,
+  HelpCircle,
+} from "lucide-react";
+
+// Mapeamento idêntico ao que usamos no Admin
+const ICON_MAP = {
+  Dog: Dog,
+  Cat: Cat,
+  Heart: Heart,
+  Bone: Bone,
+  Activity: Activity,
+  Soup: Soup,
+  Scissors: Scissors,
+  ShieldCheck: ShieldCheck,
+};
+
 const Categories = ({ categoriesData }) => {
   // Verificação de segurança caso não venham dados
   if (!categoriesData || categoriesData.length === 0) {
@@ -33,11 +60,12 @@ const Categories = ({ categoriesData }) => {
             >
               {/* O círculo colorido que o Canva usa */}
               <div className="w-20 h-20 rounded-full bg-teal-50 flex items-center justify-center border-2 border-transparent group-hover:border-teal-400 group-hover:bg-white shadow-sm transition-all duration-300">
-                <img
-                  src={category.image_url || "placeholder-paw.png"}
-                  alt={category.name}
-                  className="w-12 h-12 object-contain group-hover:rotate-12 transition-transform"
-                />
+                <div className="w-20 h-20 rounded-full bg-teal-50 flex items-center justify-center border-2 border-transparent group-hover:border-teal-400 group-hover:bg-white shadow-sm transition-all duration-300">
+                  <CategoryIcon
+                    iconName={category.icon_name}
+                    className="w-12 h-12 text-teal-600 group-hover:rotate-12 transition-transform"
+                  />
+                </div>
               </div>
 
               {/* Textos dinâmicos vindos do seu banco */}

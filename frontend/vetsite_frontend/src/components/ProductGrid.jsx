@@ -1,6 +1,6 @@
-import React from 'react';
-import ProductCard from './ProductCard'; // Reutilizamos o seu card aqui!
-import { ChevronRight } from 'lucide-react';
+import React from "react";
+import ProductCard from "./ProductCard"; // Reutilizamos o seu card aqui!
+import { ChevronRight } from "lucide-react";
 
 const ProductGrid = ({ products }) => {
   // Se não houver produtos, não mostramos a seção
@@ -9,7 +9,6 @@ const ProductGrid = ({ products }) => {
   return (
     <section id="produtos" className="py-16 lg:py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
         {/* Cabeçalho da Seção */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-12">
           <div>
@@ -23,8 +22,11 @@ const ProductGrid = ({ products }) => {
               Os favoritos dos nossos clientes com entrega imediata
             </p>
           </div>
-          
-          <a href="#catalogo" className="mt-4 sm:mt-0 text-teal-600 font-bold hover:text-teal-700 flex items-center gap-1 transition-all hover:gap-2">
+
+          <a
+            href="#catalogo"
+            className="mt-4 sm:mt-0 text-teal-600 font-bold hover:text-teal-700 flex items-center gap-1 transition-all hover:gap-2"
+          >
             Ver catálogo completo <ChevronRight size={20} />
           </a>
         </div>
