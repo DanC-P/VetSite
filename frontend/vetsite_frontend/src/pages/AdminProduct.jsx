@@ -30,7 +30,7 @@ const AdminProduct = ({ csrfToken, initialOpenForm, onFormOpened }) => {
     title: "",
     price: "",
     old_price: "",
-    category: "",
+    fr_group_id: "",
     description: "",
     stock_quantity: 0,
     is_active: true,
@@ -70,8 +70,7 @@ const AdminProduct = ({ csrfToken, initialOpenForm, onFormOpened }) => {
       title: product.title,
       price: product.price,
       old_price: product.old_price || "",
-      category:
-        product.fr_group_id || product.fr_group?.id || product.fr_group || "",
+      fr_group_id: product.fr_group?.id || product.fr_group || "",
       description: product.description || "",
       stock_quantity: product.stock_quantity || 0,
       is_active: product.is_active,
@@ -88,7 +87,7 @@ const AdminProduct = ({ csrfToken, initialOpenForm, onFormOpened }) => {
       title: "",
       price: "",
       old_price: "",
-      category: "",
+      fr_group_id: "",
       description: "",
       stock_quantity: 0,
       is_active: true,
@@ -141,7 +140,7 @@ const AdminProduct = ({ csrfToken, initialOpenForm, onFormOpened }) => {
 
     const dataToSend = new FormData();
 
-    dataToSend.append("tittle", formData.tittle);
+    dataToSend.append("title", formData.title);
     dataToSend.append("price", formData.price);
     dataToSend.append("description", formData.description);
     dataToSend.append("stock_quantity", formData.stock_quantity);
@@ -152,9 +151,10 @@ const AdminProduct = ({ csrfToken, initialOpenForm, onFormOpened }) => {
       dataToSend.append("old_price", formData.old_price);
     }
 
-    const catId = formData.category?.id || formData.category;
+    const catId = formData.fr_group_id?.id || formData.fr_group_id;
+
     if (catId) {
-      dataToSend.append("category", catId);
+      dataToSend.append("fr_group_id", catId);
     }
 
     if (imageFile instanceof File) {
@@ -264,9 +264,9 @@ const AdminProduct = ({ csrfToken, initialOpenForm, onFormOpened }) => {
                   Categoria
                 </label>
                 <select
-                  name="category"
+                  name="fr_group_id"
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white"
-                  value={formData.category?.id || formData.category || ""}
+                  value={formData.fr_group_id || ""}
                   onChange={handleChange}
                   required
                 >
@@ -432,6 +432,7 @@ const AdminProduct = ({ csrfToken, initialOpenForm, onFormOpened }) => {
                     >
                       <td className="px-8 py-4">
                         <img
+                          alt={`Imagem de categoria ${prod.fr_group}`}
                           src={prod.image}
                           className="w-14 h-14 object-cover rounded-xl border border-gray-100 shadow-sm group-hover:scale-105 transition-transform"
                         />
@@ -441,7 +442,7 @@ const AdminProduct = ({ csrfToken, initialOpenForm, onFormOpened }) => {
                           {prod.title}
                         </div>
                         <div className="text-xs text-teal-600 font-bold uppercase">
-                          {prod.fr_group_name || "Geral"}
+                          {prod.fr_group?.name || "Geral"}
                         </div>
                       </td>
                       <td className="px-8 py-4 text-center">

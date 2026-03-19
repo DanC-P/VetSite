@@ -97,10 +97,14 @@ const AdminCategory = ({ csrfToken }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Como agora enviamos apenas texto (JSON), não precisamos de FormData
+    const url = editingId
+      ? `/api/categories/${editingId}/`
+      : "/api/categories/";
+    const method = editingId ? "PATCH" : "POST";
+
     try {
-      const res = await fetch("/api/categories/", {
-        method: "POST",
+      const res = await fetch(url, {
+        method: method,
         headers: {
           "Content-Type": "application/json",
           "X-CSRFToken": csrfToken,
@@ -202,7 +206,7 @@ const AdminCategory = ({ csrfToken }) => {
         >
           <div className="flex justify-between items-center mb-8">
             <h3 className="text-xl font-black text-gray-800 italic uppercase tracking-widest">
-              Nova Categoria
+              {editingId ? "Editar Categoria" : "Nova Categoria"}
             </h3>
             <button
               onClick={() => setShowForm(false)}
@@ -270,7 +274,7 @@ const AdminCategory = ({ csrfToken }) => {
               type="submit"
               className="w-full bg-teal-600 text-white font-black py-4 rounded-2xl shadow-xl hover:bg-teal-700 transition-all uppercase tracking-widest"
             >
-              Salvar Categoria
+              {editingId ? "SALVAR ALTERAÇÕES" : "CRIAR NOVA CATEGORIA"}
             </button>
           </form>
         </div>
