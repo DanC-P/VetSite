@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import Navbar from "../components/Navbar";
-import Hero from "../components/Hero";
-import Categories from "../components/Categories";
-import ProductGrid from "../components/ProductGrid";
-import Features from "../components/Features";
-import Footer from "../components/Footer";
+import {
+  Navbar,
+  Hero,
+  Categories,
+  ProductGrid,
+  Features,
+  Footer,
+} from "../components";
 
 const Home = () => {
   const [products, setProducts] = useState([]);

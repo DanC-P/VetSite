@@ -1,0 +1,10 @@
+export { default as Home } from "./Home";
+export { default as Login } from "./Login";
+export { default as AdminDashboard } from "./AdminDashboard";
+export { default as AdminOverview } from "./AdminOverview";
+export { default as AdminProduct } from "./AdminProduct";
+export { default as AdminCategory } from "./AdminCategory";
+export { default as AdminConfigSite } from "./AdminConfigSite";
+export { default as Products } from "./Products";
+export { default as AboutUs } from "./AboutUs";
+export { default as Contact } from "./Contact";

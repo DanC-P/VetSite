@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import SidebarAdmin from "../components/SidebarAdmin";
-import AdminHeader from "../components/AdminHeader";
+import { SidebarAdmin, AdminHeader } from "../components";
 import AdminProduct from "./AdminProduct"; // A view de produtos que criamos
 import AdminOverview from "./AdminOverview"; // Uma view de dashboard/estatísticas
 import AdminCategory from "./AdminCategory";
 import AdminConfigSite from "./AdminConfigSite";
+import { Outlet, useOutletContext } from "react-router-dom";
 
 // Função única para pegar o CSRF
 function getCookie(name) {
@@ -23,67 +23,24 @@ function getCookie(name) {
 }
 
 const AdminDashboard = () => {
-  const [activePage, setActivePage] = useState("dashboard");
   const [csrfToken, setCsrfToken] = useState("");
-  const [shouldShowForm, setShouldShowForm] = useState(false);
 
   useEffect(() => {
     // Pega o token uma vez para todos os filhos
     setCsrfToken(getCookie("csrftoken"));
   }, []);
 
-  const handleCreateProductShortcut = () => {
-    setShouldShowForm(true);
-    setActivePage("produtos");
-  };
-
-  const renderContent = () => {
-    if (activePage === "dashboard")
-      return <AdminOverview onNavigateToCreate={handleCreateProductShortcut} />;
-    if (activePage === "categorias")
-      return <AdminCategory csrfToken={csrfToken} />;
-    if (activePage === "produtos")
-      return (
-        <AdminProduct
-          csrfToken={csrfToken}
-          initialOpenForm={shouldShowForm} // Passa o gatilho
-          onFormOpened={() => setShouldShowForm(false)} // Função para resetar o gatilho
-        />
-      );
-    if (activePage === "configuracoes")
-      return <AdminConfigSite csrfToken={csrfToken} />;
-    return <AdminOverview csrfToken={csrfToken} />;
-  };
-
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar fixo que controla o estado activePage */}
-      <SidebarAdmin activePage={activePage} onNavigate={setActivePage} />
-
+      <SidebarAdmin /> {/* Note: Sem props de activePage! */}
       <div className="flex-1 flex flex-col">
-        {/* Header fixo que pode receber o título dinâmico */}
-        <AdminHeader
-          title={
-            activePage === "dashboard"
-              ? "Painel de Controle"
-              : activePage === "categorias"
-                ? "Gerenciar Categorias"
-                : activePage === "produtos"
-                  ? "Gerenciar Produtos"
-                  : "Configurações do Site"
-          }
-          breadcrumb={`Admin / ${
-            activePage === "dashboard"
-              ? "Dashboard"
-              : activePage === "categorias"
-                ? "Categorias"
-                : activePage === "produtos"
-                  ? "Produtos"
-                  : "Configurações"
-          }`}
-        />
-
-        <main className="flex-1 overflow-y-auto">{renderContent()}</main>
+        <AdminHeader />
+        <main className="flex-1 overflow-y-auto p-6">
+          {/* A MÁGICA: O Outlet renderiza o filho da URL atual.
+              A prop 'context' envia o token para QUALQUER filho que for renderizado aqui.
+          */}
+          <Outlet context={{ csrfToken }} />
+        </main>
       </div>
     </div>
   );

@@ -8,15 +8,26 @@ import {
   ArrowRight,
   ShoppingCart,
 } from "lucide-react";
-import { Navigate, useNavigate } from "react-router-dom"; // Assumindo que você usa react-router
+import { useNavigate, useOutletContext } from "react-router-dom"; // Assumindo que você usa react-router
 
-const AdminOverview = ({ onNavigateToCreate }) => {
+const AdminOverview = () => {
   const [data, setData] = useState({
     products: [],
     categories: [],
     loading: true,
   });
   const navigate = useNavigate();
+
+  const productToPass = {
+    title: "",
+    price: "",
+    old_price: "",
+    fr_group_id: "",
+    description: "",
+    stock_quantity: 0,
+    is_active: true,
+    is_featured: false,
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,6 +65,10 @@ const AdminOverview = ({ onNavigateToCreate }) => {
     (acc, p) => acc + parseFloat(p.price) * (p.stock_quantity || 0),
     0,
   );
+
+  const handleNavigate = () => {
+    navigate("/dashboard/reg_produtos", { state: { productToPass } });
+  };
 
   const stats = [
     {
@@ -197,7 +212,7 @@ const AdminOverview = ({ onNavigateToCreate }) => {
               Cadastre novos itens para sua loja agora mesmo.
             </p>
             <button
-              onClick={onNavigateToCreate}
+              onClick={handleNavigate}
               className="bg-white text-teal-600 px-6 py-3 rounded-xl font-black text-sm hover:bg-teal-50 transition-colors"
             >
               IR PARA CADASTRO

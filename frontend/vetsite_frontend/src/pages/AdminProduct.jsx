@@ -10,9 +10,13 @@ import {
   Star,
   AlertCircle,
 } from "lucide-react";
-import { data, useSearchParams } from "react-router-dom";
+import {
+  useLocation,
+  useOutletContext,
+  useSearchParams,
+} from "react-router-dom";
 
-const AdminProduct = ({ csrfToken, initialOpenForm, onFormOpened }) => {
+const AdminProduct = () => {
   // --- ESTADOS ---
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -21,6 +25,11 @@ const AdminProduct = ({ csrfToken, initialOpenForm, onFormOpened }) => {
   const [editingId, setEditingId] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+
+  const location = useLocation();
+  const productFromState = location.state?.productToPass;
+
+  const { csrfToken } = useOutletContext();
 
   const fileInputRef = useRef(null);
   const formRef = useRef(null);
@@ -58,11 +67,12 @@ const AdminProduct = ({ csrfToken, initialOpenForm, onFormOpened }) => {
   useEffect(() => {
     fetchData();
 
-    if (initialOpenForm) {
+    if (productFromState) {
       handleOpenNewForm();
-      onFormOpened();
+
+      window.history.replaceState({}, document.title);
     }
-  }, [initialOpenForm]);
+  }, [productFromState]);
 
   const handleEdit = (product) => {
     setEditingId(product.id);

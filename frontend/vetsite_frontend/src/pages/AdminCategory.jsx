@@ -15,6 +15,7 @@ import {
   PawPrint,
   Edit2,
 } from "lucide-react";
+import { useOutletContext } from "react-router-dom";
 
 // Mapeamento de ícones para renderização dinâmica
 const ICON_MAP = {
@@ -33,12 +34,14 @@ const ICON_OPTIONS = Object.keys(ICON_MAP).map((name) => ({
   icon: ICON_MAP[name],
 }));
 
-const AdminCategory = ({ csrfToken }) => {
+const AdminCategory = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const formRef = useRef(null);
   const [editingId, setEditingId] = useState(null);
+
+  const { csrfToken } = useOutletContext();
 
   const [formData, setFormData] = useState({
     name: "",

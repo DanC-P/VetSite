@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Save, UploadCloud, ImageIcon, PawPrint } from "lucide-react";
+import { useOutletContext } from "react-router-dom";
 
-const AdminConfigSite = ({ csrftoken }) => {
+const AdminConfigSite = () => {
   const [configuration, setConfiguration] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -16,6 +17,8 @@ const AdminConfigSite = ({ csrftoken }) => {
     default_mensage: "",
     email_contact: "",
   });
+
+  const { csrftoken } = useOutletContext();
 
   const fetchSettings = async () => {
     try {
