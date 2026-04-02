@@ -18,6 +18,7 @@ class ProductSerializer(serializers.ModelSerializer):
         queryset = Category.objects.all(), source='fr_group', write_only=True
     )
 
+
     class Meta:
         model = Product
         fields = ['id',
@@ -30,7 +31,8 @@ class ProductSerializer(serializers.ModelSerializer):
                   'image',
                   'fr_group',
                   'fr_group_id',
-                  'is_active']
+                  'is_active',
+                  'is_featured']
 
 
 class BannerSerializer(serializers.ModelSerializer):

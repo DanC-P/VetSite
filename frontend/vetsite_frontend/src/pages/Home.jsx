@@ -19,8 +19,8 @@ const Home = () => {
     const loadData = async () => {
       try {
         const [resProducts, resCategories] = await Promise.all([
-          fetch("http://127.0.0.1:8000/api/products/?home=true"),
-          fetch("http://127.0.0.1:8000/api/categories/"),
+          fetch("/api/products/?home=true"),
+          fetch("/api/categories/"),
         ]);
 
         if (!resProducts.ok || !resCategories.ok) {

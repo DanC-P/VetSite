@@ -1,6 +1,7 @@
 import React from "react";
 import ProductCard from "./ProductCard"; // Reutilizamos o seu card aqui!
 import { ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const ProductGrid = ({ products }) => {
   // Se não houver produtos, não mostramos a seção
@@ -23,12 +24,12 @@ const ProductGrid = ({ products }) => {
             </p>
           </div>
 
-          <a
-            href="#catalogo"
+          <Link
+            to="/produtos"
             className="mt-4 sm:mt-0 text-teal-600 font-bold hover:text-teal-700 flex items-center gap-1 transition-all hover:gap-2"
           >
             Ver catálogo completo <ChevronRight size={20} />
-          </a>
+          </Link>
         </div>
 
         {/* Grade de Produtos */}

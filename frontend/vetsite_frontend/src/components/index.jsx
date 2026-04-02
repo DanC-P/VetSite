@@ -7,3 +7,6 @@ export { default as Navbar } from "./Navbar";
 export { default as ProductCard } from "./ProductCard";
 export { default as ProductGrid } from "./ProductGrid";
 export { default as SidebarAdmin } from "./SidebarAdmin";
+export { default as FiltersWrapper } from "./FiltersWrapper";
+export { default as ResultsInfo } from "./ResultsInfo";
+export { default as ProductGridCatalogue } from "./ProductGridCatalogue";

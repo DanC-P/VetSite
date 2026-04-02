@@ -8,7 +8,7 @@ import {
   ArrowRight,
   ShoppingCart,
 } from "lucide-react";
-import { useNavigate, useOutletContext } from "react-router-dom"; // Assumindo que você usa react-router
+import { Link, useNavigate, useOutletContext } from "react-router-dom"; // Assumindo que você usa react-router
 
 const AdminOverview = () => {
   const [data, setData] = useState({
@@ -194,9 +194,12 @@ const AdminOverview = () => {
             )}
           </div>
           <div className="p-6 bg-gray-50/50 text-center">
-            <button className="text-sm font-bold text-teal-600 hover:underline">
+            <Link
+              to={"/dashboard/reg_produtos"}
+              className="text-sm font-bold text-teal-600 hover:underline"
+            >
               Ver inventário completo
-            </button>
+            </Link>
           </div>
         </div>
 

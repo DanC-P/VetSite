@@ -42,7 +42,7 @@ const AdminProduct = () => {
     fr_group_id: "",
     description: "",
     stock_quantity: 0,
-    is_active: true,
+    is_active: false,
     is_featured: false,
   });
 
@@ -114,6 +114,34 @@ const AdminProduct = () => {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+  };
+
+  const handleQuickUpdate = async (productId, field, newValue) => {
+    // 1. Atualiza a UI localmente primeiro (Optimistic Update)
+    setProducts((prev) =>
+      prev.map((p) => (p.id === productId ? { ...p, [field]: newValue } : p)),
+    );
+
+    let sanitizedValue = parseFloat(newValue);
+    if (isNaN(sanitizedValue) || sanitizedValue < 0) sanitizedValue = 0;
+
+    sanitizedValue = Math.round(sanitizedValue * 100) / 100;
+
+    // 2. Envia para o Django
+    try {
+      await fetch(`/api/products/${productId}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+        body: JSON.stringify({ [field]: newValue }),
+      });
+      // Opcional: fetchData() aqui se quiser garantir sincronia total
+    } catch (err) {
+      console.error("Erro ao salvar alteração rápida:", err);
+      alert("Falha ao sincronizar com o servidor.");
+    }
   };
 
   const handleDelete = async (id) => {
@@ -331,6 +359,47 @@ const AdminProduct = () => {
                   required
                 />
               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className="relative flex items-center">
+                    <input
+                      type="checkbox"
+                      name="is_active"
+                      checked={formData.is_active} // Use checked em vez de value para booleans
+                      onChange={handleChange}
+                      className="w-5 h-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500/20 transition-all cursor-pointer"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-gray-700 group-hover:text-teal-700 transition-colors">
+                      Produto Ativo
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      Disponibilizar o produto para venda na loja.
+                    </span>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className="relative flex items-center">
+                    <input
+                      type="checkbox"
+                      name="is_featured"
+                      checked={formData.is_featured}
+                      onChange={handleChange}
+                      className="w-5 h-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500/20 transition-all cursor-pointer"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-gray-700 group-hover:text-teal-700 transition-colors">
+                      Destaque / Novidade
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      Exibir selo de "Novidade" no catálogo.
+                    </span>
+                  </div>
+                </label>
+              </div>
               <div>
                 <label className="block text-sm font-bold text-gray-600 mb-2">
                   Descrição do Produto
@@ -465,12 +534,109 @@ const AdminProduct = () => {
                           <span
                             className={`text-xs font-bold ${prod.stock_quantity === 0 ? "text-orange-500" : "text-gray-400"}`}
                           >
-                            Estoque: {prod.stock_quantity}
+                            Estoque:
+                            <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden w-fit mx-auto bg-white">
+                              {/* Botão de Subtração */}
+                              <button
+                                onClick={() =>
+                                  handleQuickUpdate(
+                                    prod.id,
+                                    "stock_quantity",
+                                    Math.max(0, prod.stock_quantity - 1),
+                                  )
+                                }
+                                className="px-2 py-1 bg-gray-50 hover:bg-red-50 hover:text-red-600 transition-colors border-r border-gray-200"
+                                disabled={prod.stock_quantity === 0}
+                              >
+                                -
+                              </button>
+
+                              {/* O Input (sem setas padrão) */}
+                              <input
+                                type="number"
+                                className="w-12 text-center text-xs font-bold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                value={prod.stock_quantity}
+                                onChange={(e) =>
+                                  handleQuickUpdate(
+                                    prod.id,
+                                    "stock_quantity",
+                                    e.target.value,
+                                  )
+                                }
+                              />
+
+                              {/* Botão de Adição */}
+                              <button
+                                onClick={() =>
+                                  handleQuickUpdate(
+                                    prod.id,
+                                    "stock_quantity",
+                                    prod.stock_quantity + 1,
+                                  )
+                                }
+                                className="px-2 py-1 bg-gray-50 hover:bg-teal-50 hover:text-teal-600 transition-colors border-l border-gray-200"
+                              >
+                                +
+                              </button>
+                            </div>
                           </span>
                         </div>
                       </td>
                       <td className="px-8 py-4 font-black text-gray-700">
-                        R$ {prod.price}
+                        R$
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs font-bold text-gray-400">
+                            R$
+                          </span>
+
+                          <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm focus-within:ring-2 focus-within:ring-teal-500/20 transition-all">
+                            {/* Diminuir 1 Real */}
+                            <button
+                              onClick={() =>
+                                handleQuickUpdate(
+                                  prod.id,
+                                  "price",
+                                  Math.max(0, parseFloat(prod.price) - 1),
+                                )
+                              }
+                              className="px-2 py-1.5 bg-gray-50 hover:bg-red-50 hover:text-red-600 border-r border-gray-200 transition-colors"
+                              title="Diminuir R$ 1,00"
+                              disabled={parseFloat(prod.price) === 0}
+                            >
+                              -
+                            </button>
+
+                            {/* Input de Preço */}
+                            <input
+                              type="number"
+                              step="0.01"
+                              className="w-20 text-center text-sm font-black text-teal-700 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              value={prod.price}
+                              onChange={(e) =>
+                                handleQuickUpdate(
+                                  prod.id,
+                                  "price",
+                                  e.target.value,
+                                )
+                              }
+                            />
+
+                            {/* Aumentar 1 Real */}
+                            <button
+                              onClick={() =>
+                                handleQuickUpdate(
+                                  prod.id,
+                                  "price",
+                                  parseFloat(prod.price) + 1,
+                                )
+                              }
+                              className="px-2 py-1.5 bg-gray-50 hover:bg-teal-50 hover:text-teal-600 border-l border-gray-200 transition-colors"
+                              title="Aumentar R$ 1,00"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
                       </td>
                       <td className="px-8 py-4">
                         <div className="flex justify-center gap-2">
