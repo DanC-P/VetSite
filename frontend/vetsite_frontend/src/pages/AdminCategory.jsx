@@ -14,6 +14,7 @@ import {
   Scissors,
   PawPrint,
   Edit2,
+  AlertTriangle,
 } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
 
@@ -40,6 +41,8 @@ const AdminCategory = () => {
   const [showForm, setShowForm] = useState(false);
   const formRef = useRef(null);
   const [editingId, setEditingId] = useState(null);
+  const [alertPopup, setAlertPopup] = useState(false);
+  const [alertText, setAlertText] = useState("");
 
   const { csrfToken } = useOutletContext();
 
@@ -54,7 +57,8 @@ const AdminCategory = () => {
       const data = await res.json();
       setCategories(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error("Erro ao carregar categorias:", err);
+      triggerAlert("Erro ao carregar categorias");
+      console.error("Erro ao sincronizar:", err);
     } finally {
       setLoading(false);
     }
@@ -63,6 +67,12 @@ const AdminCategory = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const triggerAlert = (message) => {
+    setAlertText(message);
+    setAlertPopup(true);
+    setTimeout(() => setAlertPopup(false), 5000);
+  };
 
   const handleOpenNewForm = () => {
     setFormData({ name: "", icon_name: "Dog" });
@@ -83,7 +93,8 @@ const AdminCategory = () => {
       });
       if (res.ok) fetchData();
     } catch (err) {
-      alert("Erro ao excluir.");
+      triggerAlert("Erro ao excluir categoria.");
+      console.error("Erro ao excluir:", err);
     }
   };
 
@@ -100,6 +111,23 @@ const AdminCategory = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!csrfToken) {
+      triggerAlert(
+        "Erro de segurança: Token CSRF não encontrado. Tente atualizar a página.",
+      );
+      return;
+    }
+
+    const dataToSend = new FormData();
+
+    dataToSend.append("name", formData.name);
+    dataToSend.append("icon_name", formData.icon_name);
+
+    if (!formData.name || !formData.icon_name) {
+      triggerAlert("Preencha todos os campos obrigatórios.");
+      return;
+    }
+
     const url = editingId
       ? `/api/categories/${editingId}/`
       : "/api/categories/";
@@ -112,15 +140,15 @@ const AdminCategory = () => {
           "Content-Type": "application/json",
           "X-CSRFToken": csrfToken,
         },
-        body: JSON.stringify(formData),
+        body: dataToSend,
       });
       if (res.ok) {
         setShowForm(false);
         fetchData();
       }
     } catch (err) {
+      triggerAlert("Erro ao salvar categoria");
       console.error("Erro ao salvar:", err);
-      alert("Erro ao salvar.");
     }
   };
 
@@ -280,6 +308,27 @@ const AdminCategory = () => {
               {editingId ? "SALVAR ALTERAÇÕES" : "CRIAR NOVA CATEGORIA"}
             </button>
           </form>
+        </div>
+      )}
+      {alertPopup && (
+        <div className="fixed bottom-5 right-5 z-[100] animate-bounce-short">
+          <div className="bg-white border-l-4 border-amber-500 p-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[320px]">
+            <div className="bg-amber-100 p-2 rounded-full text-amber-600">
+              <AlertTriangle size={20} />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-gray-900 italic">
+                Notificação
+              </p>
+              <p className="text-xs text-gray-600">{alertText}</p>
+            </div>
+            <button
+              onClick={() => setAlertPopup(false)}
+              className="p-1 hover:bg-gray-100 rounded-full text-gray-400"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
       )}
     </div>

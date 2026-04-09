@@ -2,8 +2,15 @@ import React, { useState } from "react";
 import { Menu, X, PawPrint } from "lucide-react"; // Importei o ícone PawPrint como sugestão caso não use o SVG
 import { Link } from "react-router-dom";
 
-const Navbar = () => {
+const Navbar = ({ config }) => {
   const [isOpen, setIsOpen] = useState(false);
+
+  const title = config.title_site || "VetSite";
+  const half = Math.floor(title.length / 2);
+  const firstHalf = title.slice(0, half);
+  const secondHalf = title.slice(half);
+
+  const logoImg = config.logo === "" ? null : config.logo;
 
   // 1. Centralização dos dados de navegação
   // Isso facilita a manutenção: se mudar o nome de uma página, muda aqui.
@@ -19,15 +26,33 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo - Agora envolta em um link para voltar ao início */}
-          <div className="flex items-center gap-2 cursor-pointer">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center animate-float text-white">
-              {/* O SVG do Canva entraria aqui. Usei PawPrint como fallback do Lucide */}
-              <PawPrint size={24} />
+          <Link to="/" className="flex items-center gap-2 cursor-pointer group">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center animate-float text-white overflow-hidden border-2 border-white shadow-sm">
+              {logoImg ? (
+                <img
+                  src={
+                    config.logo.startsWith("http")
+                      ? config.logo
+                      : `http://127.0.0.1:8000${config.logo}`
+                  }
+                  alt="Logo"
+                  className="w-full h-full object-cover" // object-cover garante que preencha o círculo
+                  onError={(e) => {
+                    // Se a imagem falhar, removemos a tag img para mostrar o PawPrint (fallback)
+                    e.target.style.display = "none";
+                    e.target.parentNode.innerHTML = "<svg ...></svg>"; // Opcional: injetar ícone via JS
+                  }}
+                />
+              ) : (
+                <PawPrint size={22} />
+              )}
             </div>
-            <span className="text-2xl font-extrabold text-gray-800">
-              Vet<span className="text-teal-500">Site</span>
+
+            <span className="text-2xl font-extrabold text-gray-800 group-hover:text-teal-600 transition-colors">
+              {firstHalf}
+              <span className="text-teal-500">{secondHalf}</span>
             </span>
-          </div>
+          </Link>
 
           {/* Desktop Menu - Mapeado a partir dos nossos dados */}
           <div className="hidden md:flex items-center gap-8">

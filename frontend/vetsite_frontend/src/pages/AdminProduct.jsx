@@ -7,14 +7,9 @@ import {
   Trash2,
   Plus,
   X,
-  Star,
-  AlertCircle,
+  AlertTriangle,
 } from "lucide-react";
-import {
-  useLocation,
-  useOutletContext,
-  useSearchParams,
-} from "react-router-dom";
+import { useLocation, useOutletContext } from "react-router-dom";
 
 const AdminProduct = () => {
   // --- ESTADOS ---
@@ -25,15 +20,15 @@ const AdminProduct = () => {
   const [editingId, setEditingId] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [alertPopup, setAlertPopup] = useState(false);
+  const [alertText, setAlertText] = useState("");
 
   const location = useLocation();
   const productFromState = location.state?.productToPass;
 
   const { csrfToken } = useOutletContext();
 
-  const fileInputRef = useRef(null);
   const formRef = useRef(null);
-  const [searchParams, setSearchParams] = useSearchParams();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -45,6 +40,12 @@ const AdminProduct = () => {
     is_active: false,
     is_featured: false,
   });
+
+  const triggerAlert = (message) => {
+    setAlertText(message);
+    setAlertPopup(true);
+    setTimeout(() => setAlertPopup(false), 5000);
+  };
 
   // --- BUSCA DE DADOS ---
   const fetchData = async () => {
@@ -58,6 +59,7 @@ const AdminProduct = () => {
       setProducts(dataProd);
       setCategories(dataCat);
     } catch (err) {
+      triggerAlert("Erro ao carregar produtos.");
       console.error("Erro ao sincronizar:", err);
     } finally {
       setLoading(false);
@@ -117,15 +119,15 @@ const AdminProduct = () => {
   };
 
   const handleQuickUpdate = async (productId, field, newValue) => {
+    let finalValue = newValue;
+    if (field === "stock_quantity" || field === "price") {
+      let finalValue = parseFloat(newValue);
+      if (isNaN(finalValue) || finalValue < 0) finalValue = 0;
+    }
     // 1. Atualiza a UI localmente primeiro (Optimistic Update)
     setProducts((prev) =>
       prev.map((p) => (p.id === productId ? { ...p, [field]: newValue } : p)),
     );
-
-    let sanitizedValue = parseFloat(newValue);
-    if (isNaN(sanitizedValue) || sanitizedValue < 0) sanitizedValue = 0;
-
-    sanitizedValue = Math.round(sanitizedValue * 100) / 100;
 
     // 2. Envia para o Django
     try {
@@ -135,12 +137,11 @@ const AdminProduct = () => {
           "Content-Type": "application/json",
           "X-CSRFToken": csrfToken,
         },
-        body: JSON.stringify({ [field]: newValue }),
+        body: JSON.stringify({ [field]: finalValue }),
       });
-      // Opcional: fetchData() aqui se quiser garantir sincronia total
     } catch (err) {
       console.error("Erro ao salvar alteração rápida:", err);
-      alert("Falha ao sincronizar com o servidor.");
+      fetchData();
     }
   };
 
@@ -170,59 +171,45 @@ const AdminProduct = () => {
     e.preventDefault();
 
     if (!csrfToken) {
-      alert(
-        "Erro de segurança: Token CSRF não encontrado. Tente atualizar a página.",
-      );
+      triggerAlert("Erro de segurança: Token CSRF não encontrado.");
       return;
     }
 
-    const dataToSend = new FormData();
-
-    dataToSend.append("title", formData.title);
-    dataToSend.append("price", formData.price);
-    dataToSend.append("description", formData.description);
-    dataToSend.append("stock_quantity", formData.stock_quantity);
-    dataToSend.append("is_active", formData.is_active);
-    dataToSend.append("is_featured", formData.is_featured);
-
-    if (formData.old_price) {
-      dataToSend.append("old_price", formData.old_price);
+    // Validação simples antes de enviar
+    if (!formData.name.trim() || !formData.icon_name) {
+      triggerAlert("Preencha todos os campos obrigatórios.");
+      return;
     }
 
-    const catId = formData.fr_group_id?.id || formData.fr_group_id;
-
-    if (catId) {
-      dataToSend.append("fr_group_id", catId);
-    }
-
-    if (imageFile instanceof File) {
-      dataToSend.append("image", imageFile);
-    }
-
-    const url = editingId ? `/api/products/${editingId}/` : "/api/products/";
+    const url = editingId
+      ? `/api/categories/${editingId}/`
+      : "/api/categories/";
     const method = editingId ? "PATCH" : "POST";
 
     try {
-      const response = await fetch(url, {
+      const res = await fetch(url, {
         method: method,
-        body: dataToSend,
-        credentials: "include",
-        headers: { "X-CSRFToken": csrfToken },
+        headers: {
+          "Content-Type": "application/json", // Informa que é JSON
+          "X-CSRFToken": csrfToken,
+        },
+        body: JSON.stringify(formData), // Envia o objeto formData direto como string JSON
       });
 
-      if (response.ok) {
-        alert(editingId ? "✅ Produto atualizado!" : "✅ Produto criado!");
+      if (res.ok) {
+        triggerAlert(
+          editingId ? "✅ Categoria atualizada!" : "✅ Categoria criada!",
+        );
         setShowForm(false);
-        setEditingId(null);
-        setImageFile(null);
+        setEditingId(null); // Importante limpar o ID de edição
         fetchData();
       } else {
-        const err = await response.json();
-        console.error("Erro do Django:", err);
-        alert("Erro ao salvar: " + JSON.stringify(err));
+        const errorData = await res.json();
+        triggerAlert("Erro ao salvar: " + JSON.stringify(errorData));
       }
     } catch (err) {
-      alert("Erro na conexão com o servidor.");
+      triggerAlert("Erro na conexão com o servidor.");
+      console.error("Erro ao salvar:", err);
     }
   };
 
@@ -511,7 +498,7 @@ const AdminProduct = () => {
                     >
                       <td className="px-8 py-4">
                         <img
-                          alt={`Imagem de categoria ${prod.fr_group}`}
+                          alt={`Imagem do Produto ${prod.title}`}
                           src={prod.image}
                           className="w-14 h-14 object-cover rounded-xl border border-gray-100 shadow-sm group-hover:scale-105 transition-transform"
                         />
@@ -660,6 +647,27 @@ const AdminProduct = () => {
               </table>
             </div>
           )}
+        </div>
+      )}
+      {alertPopup && (
+        <div className="fixed bottom-5 right-5 z-[100] animate-bounce-short">
+          <div className="bg-white border-l-4 border-amber-500 p-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[320px]">
+            <div className="bg-amber-100 p-2 rounded-full text-amber-600">
+              <AlertTriangle size={20} />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-gray-900 italic">
+                Notificação
+              </p>
+              <p className="text-xs text-gray-600">{alertText}</p>
+            </div>
+            <button
+              onClick={() => setAlertPopup(false)}
+              className="p-1 hover:bg-gray-100 rounded-full text-gray-400"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
       )}
     </div>

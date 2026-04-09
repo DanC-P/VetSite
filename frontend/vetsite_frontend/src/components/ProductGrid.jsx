@@ -1,9 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import ProductCard from "./ProductCard"; // Reutilizamos o seu card aqui!
 import { ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import ProductVisualizer from "./ProductVisualizer";
 
-const ProductGrid = ({ products }) => {
+const ProductGrid = ({ products, config }) => {
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
   // Se não houver produtos, não mostramos a seção
   if (!products || products.length === 0) return null;
 
@@ -36,9 +39,19 @@ const ProductGrid = ({ products }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {products.map((item) => (
             /* [SUGESTÃO PRO] Usamos o id do banco como key para performance */
-            <ProductCard key={item.id} product={item} />
+            <ProductCard
+              key={item.id}
+              product={item}
+              onOpen={(prod) => setSelectedProduct(prod)}
+              config={config}
+            />
           ))}
         </div>
+
+        <ProductVisualizer
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+        />
       </div>
     </section>
   );

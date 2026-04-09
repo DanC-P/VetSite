@@ -38,9 +38,9 @@ class ConfigurationSite(models.Model):
     title_site = models.CharField(max_length=300, null=True, blank=True)
     logo = models.ImageField(upload_to='config/', null=True, blank=True)
     whatsapp_number = models.CharField(max_length=20, null=True, blank=True)
-    default_mensage = models.CharField(max_length=300, null=True, blank=True)
+    default_message = models.CharField(max_length=300, null=True, blank=True)
     email_contact = models.EmailField(max_length=254, null=True, blank=True)
 
     def __str__(self):
-        return "Configuração Geral do Site"
+        return self.title_site
 

@@ -11,6 +11,7 @@ import {
 const Home = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [configuration, setConfiguration] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -18,20 +19,27 @@ const Home = () => {
     // Criamos uma função para rodar os dois fetches juntos
     const loadData = async () => {
       try {
-        const [resProducts, resCategories] = await Promise.all([
+        const [resProducts, resCategories, resConfig] = await Promise.all([
           fetch("/api/products/?home=true"),
           fetch("/api/categories/"),
+          fetch("/api/configuration/"),
         ]);
 
-        if (!resProducts.ok || !resCategories.ok) {
+        if (!resProducts.ok || !resCategories.ok || !resConfig.ok) {
           throw new Error("Erro ao buscar dados do servidor");
         }
 
         const dataProducts = await resProducts.json();
         const dataCategories = await resCategories.json();
 
+        const configJson = await resConfig.json();
+        const dataConfig = Array.isArray(configJson)
+          ? configJson[0]
+          : configJson;
+
         setProducts(dataProducts);
         setCategories(dataCategories);
+        setConfiguration(dataConfig);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -83,7 +91,7 @@ const Home = () => {
       )}
 
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <Navbar config={configuration} />
 
         {loading ? (
           <div className="flex flex-col items-center justify-center min-h-[60vh]">
@@ -94,10 +102,10 @@ const Home = () => {
           </div>
         ) : (
           <>
-            <Hero featuredProduct={featured} />
+            <Hero featuredProduct={featured} config={configuration} />
             <main>
               <Categories categoriesData={categories} />
-              <ProductGrid products={products} />
+              <ProductGrid products={products} config={configuration} />
               <Features />
             </main>
           </>

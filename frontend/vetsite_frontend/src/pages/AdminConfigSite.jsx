@@ -1,12 +1,21 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Save, UploadCloud, ImageIcon, PawPrint } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import {
+  Save,
+  UploadCloud,
+  PawPrint,
+  RefreshCcwDotIcon,
+  X,
+  AlertTriangle,
+} from "lucide-react";
 import { useOutletContext } from "react-router-dom";
 
 const AdminConfigSite = () => {
-  const [configuration, setConfiguration] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [alertPopup, setAlertPopup] = useState(false);
+  const [alertText, setAlertText] = useState("");
+
+  const { csrfToken } = useOutletContext();
 
   const [logoFile, setLogoFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -14,19 +23,22 @@ const AdminConfigSite = () => {
   const [formData, setFormData] = useState({
     title_site: "",
     whatsapp_number: "",
-    default_mensage: "",
+    default_message: "",
     email_contact: "",
   });
 
-  const { csrftoken } = useOutletContext();
+  // Função para disparar o alerta visual
+  const triggerAlert = (message) => {
+    setAlertText(message);
+    setAlertPopup(true);
+    setTimeout(() => setAlertPopup(false), 5000);
+  };
 
   const fetchSettings = async () => {
     try {
       const resConfg = await fetch("/api/configuration/");
       if (!resConfg.ok) throw new Error("Erro na rede");
-
       const dataConfig = await resConfg.json();
-
       return dataConfig;
     } catch (err) {
       console.error("Erro ao sincronizar:", err);
@@ -40,19 +52,15 @@ const AdminConfigSite = () => {
 
     if (data) {
       const config = Array.isArray(data) ? data[0] : data;
-
       if (config) {
         setEditingId(config.id);
         setFormData({
           title_site: config.title_site || "",
           whatsapp_number: config.whatsapp_number || "",
-          default_mensage: config.default_mensage || "",
+          default_message: config.default_message || "",
           email_contact: config.email_contact || "",
         });
-
-        if (config.logo) {
-          setPreviewUrl(config.logo);
-        }
+        if (config.logo) setPreviewUrl(config.logo);
       }
     }
     setLoading(false);
@@ -60,7 +68,7 @@ const AdminConfigSite = () => {
 
   useEffect(() => {
     loadSettings();
-  }, []);
+  });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -78,10 +86,29 @@ const AdminConfigSite = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!csrfToken) {
+      triggerAlert("Erro de segurança: Token CSRF não encontrado.");
+      return;
+    }
+
+    // VALIDAÇÕES USANDO O ESTADO (formData)
+    if (
+      formData.whatsapp_number.length > 0 &&
+      formData.whatsapp_number.length < 10
+    ) {
+      triggerAlert("Número de WhatsApp muito curto. Verifique o DDD.");
+      return;
+    }
+
+    if (formData.email_contact && !formData.email_contact.includes("@")) {
+      triggerAlert("Email inválido. Verifique o formato.");
+      return;
+    }
+
     const dataToSend = new FormData();
     dataToSend.append("title_site", formData.title_site);
     dataToSend.append("whatsapp_number", formData.whatsapp_number);
-    dataToSend.append("default_mensage", formData.default_mensage);
+    dataToSend.append("default_message", formData.default_message);
     dataToSend.append("email_contact", formData.email_contact);
 
     if (logoFile) {
@@ -98,22 +125,32 @@ const AdminConfigSite = () => {
         method: method,
         body: dataToSend,
         credentials: "include",
-        headers: { "X-CSRFToken": csrftoken },
+        headers: { "X-CSRFToken": csrfToken },
       });
 
       if (response.ok) {
-        alert(
-          editingId ? "✅ Configurações atualizadas!" : "Configuração criada!",
-        );
-        setShowForm(false);
-        fetchSettings();
+        triggerAlert("✅ Configurações salvas com sucesso!");
+        loadSettings(); // Recarrega os dados para garantir sincronia
       } else {
-        const err = await response.json();
-        console.error(err);
+        const errData = await response.json();
+        console.error(errData);
+        triggerAlert("Erro ao salvar no servidor.");
       }
     } catch (err) {
-      alert("Erro na conexão com o servidor.");
+      triggerAlert("Erro na conexão com o servidor.");
     }
+  };
+
+  const handleResetConfig = (e) => {
+    e.preventDefault();
+    setFormData({
+      title_site: "",
+      whatsapp_number: "",
+      default_message: "",
+      email_contact: "",
+    });
+    setPreviewUrl(null);
+    setLogoFile(null);
   };
 
   if (loading)
@@ -124,22 +161,19 @@ const AdminConfigSite = () => {
     );
 
   return (
-    <div className="mx-auto">
-      {/* Aumentei para 4xl e centralizei */}
+    <div className="mx-auto max-w-5xl p-6">
       <div className="p-8 bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div className="mb-8 flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-bold text-gray-800">
-              Informações do Site
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Configure os dados principais da sua loja VetSite
-            </p>
-          </div>
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-gray-800">
+            Informações do Site
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Configure os dados principais da sua loja
+          </p>
         </div>
 
-        <form id="settings-form" className="space-y-6" onSubmit={handleSubmit}>
-          {/* Site Logo */}
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          {/* Logo Upload Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
             <div className="md:col-span-2">
               <label className="block text-sm font-semibold text-gray-700 mb-4">
@@ -151,12 +185,9 @@ const AdminConfigSite = () => {
                   document.getElementById("file-input-logo").click()
                 }
               >
-                <UploadCloud className="w-10 h-10 text-gray-400 mx-auto mb-2 group-hover:text-teal-500 transition-colors" />
+                <UploadCloud className="w-10 h-10 text-gray-400 mx-auto mb-2 group-hover:text-teal-500" />
                 <p className="text-gray-600 font-medium text-sm">
-                  Arraste a logo ou clique para upload
-                </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  PNG, JPG até 5MB (Recomendado: fundo transparente)
+                  Clique para upload da logo
                 </p>
               </div>
               <input
@@ -172,7 +203,7 @@ const AdminConfigSite = () => {
               <label className="block text-sm font-semibold text-gray-700 mb-4">
                 Preview
               </label>
-              <div className="w-40 h-40 bg-gray-50 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-200 overflow-hidden">
+              <div className="w-32 h-32 bg-gray-50 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-200 overflow-hidden">
                 {previewUrl ? (
                   <img
                     src={previewUrl}
@@ -180,18 +211,13 @@ const AdminConfigSite = () => {
                     className="w-full h-full object-contain p-2"
                   />
                 ) : (
-                  <div className="text-center">
-                    <PawPrint className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                    <p className="text-xs text-gray-400">Sem Logo</p>
-                  </div>
+                  <PawPrint className="w-8 h-8 text-gray-300" />
                 )}
               </div>
             </div>
           </div>
 
-          <hr className="border-gray-100" />
-
-          {/* Título do Site */}
+          {/* Título */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Título do Site
@@ -201,24 +227,30 @@ const AdminConfigSite = () => {
               name="title_site"
               value={formData.title_site}
               onChange={handleInputChange}
-              placeholder="Ex: VetSite - Sua Loja de Produtos para Pets"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
             />
           </div>
 
-          {/* Grid para WhatsApp e Email (Fica lado a lado em telas maiores) */}
+          {/* WhatsApp e Email */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 WhatsApp
               </label>
               <input
-                type="text" // Mudei para text para aceitar parênteses/espaços se quiser, ou mantenha number
+                type="text"
                 name="whatsapp_number"
                 value={formData.whatsapp_number}
-                onChange={handleInputChange}
+                onChange={(e) => {
+                  // FILTRO DE NÚMEROS: Remove qualquer letra instantaneamente
+                  const onlyNums = e.target.value.replace(/\D/g, "");
+                  setFormData((prev) => ({
+                    ...prev,
+                    whatsapp_number: onlyNums,
+                  }));
+                }}
                 placeholder="Ex: 11999998888"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
               />
             </div>
             <div>
@@ -230,35 +262,38 @@ const AdminConfigSite = () => {
                 name="email_contact"
                 value={formData.email_contact}
                 onChange={handleInputChange}
-                placeholder="contato@vetsite.com.br"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
               />
             </div>
           </div>
 
-          {/* Default Mensage WhatsApp */}
+          {/* Mensagem Padrão */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Mensagem Padrão (WhatsApp)
             </label>
             <textarea
-              name="default_mensage"
-              value={formData.default_mensage}
+              name="default_message"
+              value={formData.default_message}
               onChange={handleInputChange}
-              placeholder="Ex: Olá! Gostaria de saber mais sobre os produtos."
               rows="3"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none resize-none"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Texto que aparecerá automaticamente para o cliente ao clicar no
-              WhatsApp.
-            </p>
           </div>
 
-          <div className="flex justify-end pt-6 border-t border-gray-100">
+          {/* Botões */}
+          <div className="flex justify-end gap-3 pt-6 border-t">
+            <button
+              type="button"
+              onClick={handleResetConfig}
+              className="px-6 py-3 border-2 border-teal-600 text-teal-700 font-bold rounded-xl hover:bg-teal-50 flex items-center gap-2"
+            >
+              <RefreshCcwDotIcon className="w-5 h-5" />
+              Resetar Padrões
+            </button>
             <button
               type="submit"
-              className="px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-teal-100 flex items-center gap-2"
+              className="px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-lg flex items-center gap-2"
             >
               <Save className="w-5 h-5" />
               Salvar Configurações
@@ -266,6 +301,29 @@ const AdminConfigSite = () => {
           </div>
         </form>
       </div>
+
+      {/* Pop-up de Alerta Personalizado */}
+      {alertPopup && (
+        <div className="fixed bottom-5 right-5 z-[100] animate-bounce-short">
+          <div className="bg-white border-l-4 border-amber-500 p-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[320px]">
+            <div className="bg-amber-100 p-2 rounded-full text-amber-600">
+              <AlertTriangle size={20} />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-gray-900 italic">
+                Notificação
+              </p>
+              <p className="text-xs text-gray-600">{alertText}</p>
+            </div>
+            <button
+              onClick={() => setAlertPopup(false)}
+              className="p-1 hover:bg-gray-100 rounded-full text-gray-400"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

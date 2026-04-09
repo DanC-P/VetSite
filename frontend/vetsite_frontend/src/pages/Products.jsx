@@ -10,6 +10,7 @@ import {
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [configuration, setConfiguration] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -30,20 +31,26 @@ const Products = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [resProd, resCat] = await Promise.all([
+        const [resProd, resCat, resConfig] = await Promise.all([
           fetch("/api/products/"),
           fetch("/api/categories/"),
+          fetch("/api/configuration/"),
         ]);
 
-        if (!resProd.ok || !resCat.ok) {
+        if (!resProd.ok || !resCat.ok || !resConfig.ok) {
           throw new Error("Erro ao buscar dados do servidor");
         }
 
         const dataProd = await resProd.json();
         const dataCat = await resCat.json();
+        const configJson = await resConfig.json();
+        const dataConfig = Array.isArray(configJson)
+          ? configJson[0]
+          : configJson;
 
         setProducts(dataProd);
         setCategories(dataCat);
+        setConfiguration(dataConfig);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -134,7 +141,7 @@ const Products = () => {
             </div>
           ) : (
             <>
-              <Navbar />
+              <Navbar config={configuration} />
               <FiltersWrapper
                 filters={filters}
                 updateFilter={updateFilter}
@@ -147,6 +154,7 @@ const Products = () => {
               />
               <ProductGridCatalogue
                 products={productsFiltered}
+                config={configuration}
                 loading={loading}
               />
             </>

@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import ProductCard from "./ProductCard"; // Certifique-se de que o caminho está correto
+import ProductVisualizer from "./ProductVisualizer";
 
-const ProductGridCatalogue = ({ products, loading }) => {
+const ProductGridCatalogue = ({ products, loading, config }) => {
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
@@ -45,9 +48,19 @@ const ProductGridCatalogue = ({ products, loading }) => {
     <div className="p-8">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
+          <ProductCard
+            key={product.id}
+            product={product}
+            onOpen={(prod) => setSelectedProduct(prod)}
+            config={config}
+          />
         ))}
       </div>
+
+      <ProductVisualizer
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+      />
     </div>
   );
 };
