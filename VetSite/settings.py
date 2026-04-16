@@ -95,10 +95,17 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# --- SEGURANÇA E CORS ---
-CORS_ALLOW_CREDENTIALS = True
-CORS_ORIGIN_ALLOW_ALL = True
+# --- SEGURANÇA E CORS (Portas 3000 e 8000) ---
 
+CORS_ALLOW_CREDENTIALS = True
+
+# O Django autoriza o React (3000) a enviar pedidos
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+# O Django confia nas requisições vindas dessas URLs
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -106,18 +113,12 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8000",
 ]
 
-# Configurações de Cookie para facilitar a vida do React
-CSRF_COOKIE_HTTPONLY = False  # Permite que o React leia o cookie CSRF
-SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_NAME = "csrftoken"
-ENSURE_CSRF_COOKIE = True
-
-# --- DJANGO REST FRAMEWORK ---
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-    ],
-}
+# Configurações para garantir que o cookie circule entre as portas
+CSRF_COOKIE_HTTPONLY = False  # Para o React conseguir ler o token
+CSRF_COOKIE_SECURE = False    # Obrigatório ser False para HTTP (localhost)
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_NAME = 'csrftoken'
+SESSION_COOKIE_NAME = 'sessionid'
+SESSION_SAVE_EVERY_REQUEST = True

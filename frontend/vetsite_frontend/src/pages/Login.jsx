@@ -1,10 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Chamada GET apenas para o Django plantar o cookie csrftoken no navegador
+    fetch("/api/products/", { credentials: "include" })
+      .then(() => console.log("Cookie CSRF solicitado ao servidor"))
+      .catch((err) => console.error("Erro ao solicitar cookie:", err));
+    fetch("/api-auth/login/", { method: "GET" });
+  }, []);
 
   // Função para pegar o CSRF Token (Essencial para POST no Django)
   const getCookie = (name) => {
@@ -24,40 +32,36 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    const csrfToken = getCookie("csrftoken");
+
+    // Criamos um corpo de formulário clássico
+    const details = new URLSearchParams({
+      username: username,
+      password: password,
+    });
 
     try {
-      // USAMOS URL RELATIVA: O Django agora serve o React, então o domínio é o mesmo.
-      const token = getCookie("csrftoken");
-
       const response = await fetch("/api-auth/login/", {
         method: "POST",
         headers: {
+          // O Django padrão espera esse Content-Type para gerar a sessão
           "Content-Type": "application/x-www-form-urlencoded",
-          "X-CSRFToken": token || "",
+          "X-CSRFToken": csrfToken || "",
         },
-        body: new URLSearchParams({
-          username: username,
-          password: password,
-          next: "/api/products/", // Truque: Dizemos ao Django para onde olhar internamente
-        }),
-        credentials: "include", // OBRIGATÓRIO para salvar o cookie de sessão no navegador
+        body: details,
+        credentials: "include", // ESSENCIAL para receber o sessionid
       });
 
-      // O Django DRF retorna 200 em caso de sucesso no login via POST
-      if (response.ok) {
+      // Se o Django responder 200 ou 302 (redirecionamento), ele enviará o cookie
+      if (response.ok || response.status === 302) {
         console.log("Login realizado com sucesso!");
         localStorage.setItem("isLoggedIn", "true");
-
-        // Forçamos o redirecionamento manual no React
         navigate("/dashboard");
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("Erro no login:", errorData);
-        alert("Usuário ou senha incorretos.");
+        alert("Falha no login. Verifique usuário e senha.");
       }
     } catch (error) {
-      console.error("Erro na comunicação com o servidor:", error);
-      alert("Erro de conexão com o servidor.");
+      console.error("Erro:", error);
     }
   };
 

@@ -151,10 +151,18 @@ const AdminProduct = () => {
       const res = await fetch(`/api/products/${id}/`, {
         method: "DELETE",
         headers: { "X-CSRFToken": csrfToken },
+        credentials: "include", // ESSENCIAL para enviar cookies de sessão
       });
-      if (res.ok) fetchData();
+      if (res.ok) {
+        fetchData();
+      } else {
+        // Se cair aqui, o Django respondeu mas negou (ex: 403)
+        const errorData = await res.json();
+        console.error("Erro do Django:", errorData);
+      }
     } catch (err) {
-      alert("Erro ao excluir.");
+      // O catch só dispara se o servidor estiver desligado ou a rede cair
+      console.error("Erro de rede:", err);
     }
   };
 
@@ -169,47 +177,40 @@ const AdminProduct = () => {
   // --- ENVIO (POST/PATCH) ---
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const data = new FormData();
 
-    if (!csrfToken) {
-      triggerAlert("Erro de segurança: Token CSRF não encontrado.");
-      return;
+    Object.keys(formData).forEach((key) => {
+      data.append(key, formData[key]);
+    });
+
+    if (imageFile instanceof File) {
+      data.append("image", imageFile);
     }
 
-    // Validação simples antes de enviar
-    if (!formData.name.trim() || !formData.icon_name) {
-      triggerAlert("Preencha todos os campos obrigatórios.");
-      return;
-    }
-
-    const url = editingId
-      ? `/api/categories/${editingId}/`
-      : "/api/categories/";
+    const url = editingId ? `/api/products/${editingId}/` : "/api/products/";
     const method = editingId ? "PATCH" : "POST";
 
     try {
-      const res = await fetch(url, {
+      const response = await fetch(url, {
         method: method,
-        headers: {
-          "Content-Type": "application/json", // Informa que é JSON
-          "X-CSRFToken": csrfToken,
-        },
-        body: JSON.stringify(formData), // Envia o objeto formData direto como string JSON
+        headers: { "X-CSRFToken": csrfToken },
+        credentials: "include",
+        body: data,
       });
 
-      if (res.ok) {
-        triggerAlert(
-          editingId ? "✅ Categoria atualizada!" : "✅ Categoria criada!",
-        );
+      if (response.ok) {
+        alert(editingId ? "✅ Produto atualizado!" : "✅ Produto criado!");
         setShowForm(false);
-        setEditingId(null); // Importante limpar o ID de edição
+        setEditingId(null);
+        setImageFile(null);
         fetchData();
       } else {
-        const errorData = await res.json();
-        triggerAlert("Erro ao salvar: " + JSON.stringify(errorData));
+        const err = await response.json();
+        console.error("Erro do Django:", err);
+        alert("Erro ao salvar: " + JSON.stringify(err));
       }
     } catch (err) {
-      triggerAlert("Erro na conexão com o servidor.");
-      console.error("Erro ao salvar:", err);
+      alert("Erro na conexão com o servidor.");
     }
   };
 
