@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Package,
   UploadCloud,
@@ -8,6 +8,9 @@ import {
   Plus,
   X,
   AlertTriangle,
+  AlertCircle,
+  CheckCircle,
+  Info,
 } from "lucide-react";
 import { useLocation, useOutletContext } from "react-router-dom";
 
@@ -22,6 +25,8 @@ const AdminProduct = () => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [alertPopup, setAlertPopup] = useState(false);
   const [alertText, setAlertText] = useState("");
+  const [alertType, setAlertType] = useState("");
+  const [productToDelete, setProductToDelete] = useState(null);
 
   const location = useLocation();
   const productFromState = location.state?.productToPass;
@@ -30,6 +35,7 @@ const AdminProduct = () => {
 
   const formRef = useRef(null);
 
+  /// --- FORMULÁRIO VAZIO ---
   const [formData, setFormData] = useState({
     title: "",
     price: "",
@@ -41,14 +47,39 @@ const AdminProduct = () => {
     is_featured: false,
   });
 
-  const triggerAlert = (message) => {
+  /// --- GATILHO DO MODAL ---
+  const triggerAlert = (message, type) => {
     setAlertText(message);
     setAlertPopup(true);
+    setAlertType(type || "info");
+
     setTimeout(() => setAlertPopup(false), 5000);
   };
 
+  /// --- ESTILO DINÂMICO DO MODAL ///
+  const alertStyles = {
+    error: {
+      border: "border-red-500",
+      bgIcon: "bg-red-100",
+      textColor: "text-red-600",
+      icon: <AlertCircle size={20} />,
+    },
+    success: {
+      border: "border-green-500",
+      bgIcon: "bg-green-100",
+      textColor: "text-green-600",
+      icon: <CheckCircle size={20} />,
+    },
+    info: {
+      border: "border-blue-500",
+      bgIcon: "bg-blue-100",
+      textColor: "text-blue-600",
+      icon: <Info size={20} />,
+    },
+  };
+
   // --- BUSCA DE DADOS ---
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [resProd, resCat] = await Promise.all([
         fetch("/api/products/"),
@@ -59,22 +90,28 @@ const AdminProduct = () => {
       setProducts(dataProd);
       setCategories(dataCat);
     } catch (err) {
-      triggerAlert("Erro ao carregar produtos.");
+      triggerAlert("Erro ao carregar produtos.", "error");
       console.error("Erro ao sincronizar:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchData();
-
     if (productFromState) {
       handleOpenNewForm();
 
       window.history.replaceState({}, document.title);
     }
-  }, [productFromState]);
+
+    fetchData();
+
+    return () => {
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [fetchData, productFromState, previewUrl]);
 
   const handleEdit = (product) => {
     setEditingId(product.id);
@@ -120,13 +157,19 @@ const AdminProduct = () => {
 
   const handleQuickUpdate = async (productId, field, newValue) => {
     let finalValue = newValue;
-    if (field === "stock_quantity" || field === "price") {
-      let finalValue = parseFloat(newValue);
+
+    if (field === "price") {
+      finalValue = parseFloat(newValue);
+      if (isNaN(finalValue) || finalValue < 0) finalValue = 0;
+      finalValue = parseFloat(finalValue.toFixed(2));
+    } else if (field === "stock_quantity") {
+      finalValue = parseInt(newValue, 10);
       if (isNaN(finalValue) || finalValue < 0) finalValue = 0;
     }
+
     // 1. Atualiza a UI localmente primeiro (Optimistic Update)
     setProducts((prev) =>
-      prev.map((p) => (p.id === productId ? { ...p, [field]: newValue } : p)),
+      prev.map((p) => (p.id === productId ? { ...p, [field]: finalValue } : p)),
     );
 
     // 2. Envia para o Django
@@ -140,13 +183,13 @@ const AdminProduct = () => {
         body: JSON.stringify({ [field]: finalValue }),
       });
     } catch (err) {
+      triggerAlert("Erro ao salvar alteração rápida.", "error");
       console.error("Erro ao salvar alteração rápida:", err);
       fetchData();
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Tem certeza que deseja excluir este produto?")) return;
     try {
       const res = await fetch(`/api/products/${id}/`, {
         method: "DELETE",
@@ -154,14 +197,17 @@ const AdminProduct = () => {
         credentials: "include", // ESSENCIAL para enviar cookies de sessão
       });
       if (res.ok) {
+        triggerAlert("Produto excluído com sucesso!", "success");
         fetchData();
       } else {
         // Se cair aqui, o Django respondeu mas negou (ex: 403)
         const errorData = await res.json();
+        triggerAlert("Erro ao deletar produto.", "error");
         console.error("Erro do Django:", errorData);
       }
     } catch (err) {
       // O catch só dispara se o servidor estiver desligado ou a rede cair
+      triggerAlert("Erro na conexão com o servidor.", "error");
       console.error("Erro de rede:", err);
     }
   };
@@ -177,15 +223,24 @@ const AdminProduct = () => {
   // --- ENVIO (POST/PATCH) ---
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.title) return triggerAlert("Adicione um título.", "info");
+    if (!formData.fr_group_id)
+      return triggerAlert("Adicione uma categoria.", "info");
+    if (!formData.price) return triggerAlert("Adicione um preço.", "info");
+    if (Number(formData.stock_quantity) < 0)
+      return triggerAlert("Adicione 0 ou mais itens ao estoque.", "info");
+    if (!formData.description)
+      return triggerAlert("Adicione uma descrição.", "info");
+    if (!editingId && !(imageFile instanceof File))
+      return triggerAlert("Adicione uma imagem.", "info");
+
     const data = new FormData();
 
     Object.keys(formData).forEach((key) => {
       data.append(key, formData[key]);
     });
-
-    if (imageFile instanceof File) {
-      data.append("image", imageFile);
-    }
+    data.append("image", imageFile);
 
     const url = editingId ? `/api/products/${editingId}/` : "/api/products/";
     const method = editingId ? "PATCH" : "POST";
@@ -199,7 +254,10 @@ const AdminProduct = () => {
       });
 
       if (response.ok) {
-        alert(editingId ? "✅ Produto atualizado!" : "✅ Produto criado!");
+        triggerAlert(
+          editingId ? "✅ Produto atualizado!" : "✅ Produto criado!",
+          "success",
+        );
         setShowForm(false);
         setEditingId(null);
         setImageFile(null);
@@ -207,10 +265,14 @@ const AdminProduct = () => {
       } else {
         const err = await response.json();
         console.error("Erro do Django:", err);
-        alert("Erro ao salvar: " + JSON.stringify(err));
+        triggerAlert(
+          "Erro: " + (err.detail || "Verifique os dados enviados."),
+          "error",
+        );
       }
     } catch (err) {
-      alert("Erro na conexão com o servidor.");
+      triggerAlert("Erro na conexão com o servidor.", "error");
+      console.error("Erro de rede:", err);
     }
   };
 
@@ -282,7 +344,6 @@ const AdminProduct = () => {
                   value={formData.title}
                   onChange={handleChange}
                   placeholder="Ex: Ração Premium 15kg"
-                  required
                 />
               </div>
               <div>
@@ -294,7 +355,6 @@ const AdminProduct = () => {
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white"
                   value={formData.fr_group_id || ""}
                   onChange={handleChange}
-                  required
                 >
                   <option value="">Selecione uma categoria...</option>
                   {categories.map((c) => (
@@ -318,7 +378,6 @@ const AdminProduct = () => {
                   className="w-full px-4 py-3 rounded-xl border border-gray-200"
                   value={formData.price}
                   onChange={handleChange}
-                  required
                 />
               </div>
               <div>
@@ -344,7 +403,6 @@ const AdminProduct = () => {
                   className="w-full px-4 py-3 rounded-xl border border-gray-200"
                   value={formData.stock_quantity}
                   onChange={handleChange}
-                  required
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-2xl border border-gray-100">
@@ -573,10 +631,6 @@ const AdminProduct = () => {
                       <td className="px-8 py-4 font-black text-gray-700">
                         R$
                         <div className="flex items-center gap-1">
-                          <span className="text-xs font-bold text-gray-400">
-                            R$
-                          </span>
-
                           <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm focus-within:ring-2 focus-within:ring-teal-500/20 transition-all">
                             {/* Diminuir 1 Real */}
                             <button
@@ -635,7 +689,7 @@ const AdminProduct = () => {
                             <Edit2 size={16} />
                           </button>
                           <button
-                            onClick={() => handleDelete(prod.id)}
+                            onClick={() => setProductToDelete(prod)}
                             className="p-2 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                           >
                             <Trash2 size={16} />
@@ -650,11 +704,48 @@ const AdminProduct = () => {
           )}
         </div>
       )}
+      {productToDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[200]">
+          <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center">
+            <div className="bg-red-100 text-red-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trash2 size={32} />
+            </div>
+            <h3 className="text-xl font-black text-gray-800">Tem certeza?</h3>
+            <p className="text-gray-500 text-sm mt-2">
+              Você está prestes a excluir{" "}
+              <strong>{productToDelete.title}</strong>. Esta ação não pode ser
+              desfeita.
+            </p>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setProductToDelete(null)}
+                className="flex-1 px-4 py-2 bg-gray-100 text-gray-500 font-bold rounded-xl hover:bg-gray-200"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  handleDelete(productToDelete.id);
+                  setProductToDelete(null); // Fecha após deletar
+                }}
+                className="flex-1 px-4 py-2 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {alertPopup && (
         <div className="fixed bottom-5 right-5 z-[100] animate-bounce-short">
-          <div className="bg-white border-l-4 border-amber-500 p-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[320px]">
-            <div className="bg-amber-100 p-2 rounded-full text-amber-600">
-              <AlertTriangle size={20} />
+          <div
+            className={`bg-white border-l-4 ${alertStyles[alertType]?.border || "border-blue-500"} p-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[320px]`}
+          >
+            <div
+              className={`${alertStyles[alertType]?.bgIcon || "bg-blue-100"} p-2 rounded-full ${alertStyles[alertType]?.textColor || "text-blue-600"}`}
+            >
+              {alertStyles[alertType]?.icon || <AlertTriangle size={20} />}
             </div>
             <div className="flex-1">
               <p className="text-sm font-bold text-gray-900 italic">
