@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Save,
   UploadCloud,
@@ -6,6 +6,9 @@ import {
   RefreshCcwDotIcon,
   X,
   AlertTriangle,
+  AlertCircle,
+  CheckCircle,
+  Info,
 } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
 
@@ -14,6 +17,7 @@ const AdminConfigSite = () => {
   const [editingId, setEditingId] = useState(null);
   const [alertPopup, setAlertPopup] = useState(false);
   const [alertText, setAlertText] = useState("");
+  const [alertType, setAlertType] = useState("");
 
   const { csrfToken } = useOutletContext();
 
@@ -28,25 +32,54 @@ const AdminConfigSite = () => {
   });
 
   // Função para disparar o alerta visual
-  const triggerAlert = (message) => {
+  const triggerAlert = (message, type) => {
     setAlertText(message);
     setAlertPopup(true);
+    setAlertType(type || "info");
+
     setTimeout(() => setAlertPopup(false), 5000);
   };
 
-  const fetchSettings = async () => {
+  const alertStyles = {
+    error: {
+      border: "border-red-500",
+      bgIcon: "bg-red-100",
+      textColor: "text-red-600",
+      icon: <AlertCircle size={20} />,
+    },
+    success: {
+      border: "border-green-500",
+      bgIcon: "bg-green-100",
+      textColor: "text-green-600",
+      icon: <CheckCircle size={20} />,
+    },
+    info: {
+      border: "border-blue-500",
+      bgIcon: "bg-blue-100",
+      textColor: "text-blue-600",
+      icon: <Info size={20} />,
+    },
+  };
+
+  const fetchSettings = useCallback(async () => {
     try {
-      const resConfg = await fetch("/api/configuration/");
-      if (!resConfg.ok) throw new Error("Erro na rede");
-      const dataConfig = await resConfg.json();
+      const resConfig = await fetch("/api/configuration/");
+
+      if (resConfig.status === 401 || resConfig.status === 403) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const dataConfig = await resConfig.json();
       return dataConfig;
     } catch (err) {
+      triggerAlert("Erro ao carregar configurações.", "error");
       console.error("Erro ao sincronizar:", err);
       return null;
     }
-  };
+  }, []);
 
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     setLoading(true);
     const data = await fetchSettings();
 
@@ -64,11 +97,11 @@ const AdminConfigSite = () => {
       }
     }
     setLoading(false);
-  };
+  }, [fetchSettings]);
 
   useEffect(() => {
     loadSettings();
-  });
+  }, [loadSettings]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -87,7 +120,7 @@ const AdminConfigSite = () => {
     e.preventDefault();
 
     if (!csrfToken) {
-      triggerAlert("Erro de segurança: Token CSRF não encontrado.");
+      triggerAlert("Erro de segurança: Token CSRF não encontrado.", "error");
       return;
     }
 
@@ -96,12 +129,12 @@ const AdminConfigSite = () => {
       formData.whatsapp_number.length > 0 &&
       formData.whatsapp_number.length < 10
     ) {
-      triggerAlert("Número de WhatsApp muito curto. Verifique o DDD.");
+      triggerAlert("Número de WhatsApp muito curto. Verifique o DDD.", "info");
       return;
     }
 
     if (formData.email_contact && !formData.email_contact.includes("@")) {
-      triggerAlert("Email inválido. Verifique o formato.");
+      triggerAlert("Email inválido. Verifique o formato.", "info");
       return;
     }
 
@@ -129,15 +162,16 @@ const AdminConfigSite = () => {
       });
 
       if (response.ok) {
-        triggerAlert("✅ Configurações salvas com sucesso!");
+        triggerAlert("✅ Configurações salvas com sucesso!", "success");
         loadSettings(); // Recarrega os dados para garantir sincronia
       } else {
         const errData = await response.json();
         console.error(errData);
-        triggerAlert("Erro ao salvar no servidor.");
+        triggerAlert("Erro ao salvar no servidor.", "error");
       }
     } catch (err) {
-      triggerAlert("Erro na conexão com o servidor.");
+      triggerAlert("Erro na conexão com o servidor.", "error");
+      console.error("Erro de rede:", err);
     }
   };
 
@@ -305,9 +339,13 @@ const AdminConfigSite = () => {
       {/* Pop-up de Alerta Personalizado */}
       {alertPopup && (
         <div className="fixed bottom-5 right-5 z-[100] animate-bounce-short">
-          <div className="bg-white border-l-4 border-amber-500 p-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[320px]">
-            <div className="bg-amber-100 p-2 rounded-full text-amber-600">
-              <AlertTriangle size={20} />
+          <div
+            className={`bg-white border-l-4 ${alertStyles[alertType]?.border || "border-blue-500"} p-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[320px]`}
+          >
+            <div
+              className={`${alertStyles[alertType]?.bgIcon || "bg-blue-100"} p-2 rounded-full ${alertStyles[alertType]?.textColor || "text-blue-600"}`}
+            >
+              {alertStyles[alertType]?.icon || <AlertTriangle size={20} />}
             </div>
             <div className="flex-1">
               <p className="text-sm font-bold text-gray-900 italic">
