@@ -628,7 +628,7 @@ const AdminProduct = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="px-8 py-4 font-black text-gray-700">
+                      <td className="px-8 py-4 font-black text-gray-400">
                         R$
                         <div className="flex items-center gap-1">
                           <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm focus-within:ring-2 focus-within:ring-teal-500/20 transition-all">
@@ -653,7 +653,7 @@ const AdminProduct = () => {
                               type="number"
                               step="0.01"
                               className="w-20 text-center text-sm font-black text-teal-700 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                              value={prod.price}
+                              value={Number(prod.price).toFixed(2)}
                               onChange={(e) =>
                                 handleQuickUpdate(
                                   prod.id,
