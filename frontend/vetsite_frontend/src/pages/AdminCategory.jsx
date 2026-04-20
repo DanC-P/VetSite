@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   List,
   Trash2,
@@ -15,6 +15,9 @@ import {
   PawPrint,
   Edit2,
   AlertTriangle,
+  AlertCircle,
+  CheckCircle,
+  Info,
 } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
 
@@ -41,8 +44,10 @@ const AdminCategory = () => {
   const [showForm, setShowForm] = useState(false);
   const formRef = useRef(null);
   const [editingId, setEditingId] = useState(null);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [alertPopup, setAlertPopup] = useState(false);
   const [alertText, setAlertText] = useState("");
+  const [alertType, setAlertType] = useState("");
 
   const { csrfToken } = useOutletContext();
 
@@ -51,9 +56,36 @@ const AdminCategory = () => {
     icon_name: "Dog",
   });
 
-  const fetchData = async () => {
+  const alertStyles = {
+    error: {
+      border: "border-red-500",
+      bgIcon: "bg-red-100",
+      textColor: "text-red-600",
+      icon: <AlertCircle size={20} />,
+    },
+    success: {
+      border: "border-green-500",
+      bgIcon: "bg-green-100",
+      textColor: "text-green-600",
+      icon: <CheckCircle size={20} />,
+    },
+    info: {
+      border: "border-blue-500",
+      bgIcon: "bg-blue-100",
+      textColor: "text-blue-600",
+      icon: <Info size={20} />,
+    },
+  };
+
+  const fetchData = useCallback(async () => {
     try {
       const res = await fetch("/api/categories/");
+
+      if (res.status === 401 || res.status === 403) {
+        window.location.href = "/login"; // Ou a sua rota de login
+        return;
+      }
+
       const data = await res.json();
       setCategories(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -62,15 +94,17 @@ const AdminCategory = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
-  const triggerAlert = (message) => {
+  const triggerAlert = (message, type) => {
     setAlertText(message);
     setAlertPopup(true);
+    setAlertType(type || "info");
+
     setTimeout(() => setAlertPopup(false), 5000);
   };
 
@@ -84,14 +118,19 @@ const AdminCategory = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Tem certeza que deseja excluir esta categoria?"))
-      return;
     try {
       const res = await fetch(`/api/categories/${id}/`, {
         method: "DELETE",
         headers: { "X-CSRFToken": csrfToken },
       });
-      if (res.ok) fetchData();
+      if (res.ok) {
+        triggerAlert("Categoria excluída com sucesso!", "success");
+        fetchData();
+      } else {
+        const errorData = await res.json();
+        triggerAlert("Erro ao deletar categoria.", "error");
+        console.error("Erro do Django:", errorData);
+      }
     } catch (err) {
       triggerAlert("Erro ao excluir categoria.");
       console.error("Erro ao excluir:", err);
@@ -118,11 +157,6 @@ const AdminCategory = () => {
       return;
     }
 
-    const dataToSend = new FormData();
-
-    dataToSend.append("name", formData.name);
-    dataToSend.append("icon_name", formData.icon_name);
-
     if (!formData.name || !formData.icon_name) {
       triggerAlert("Preencha todos os campos obrigatórios.");
       return;
@@ -140,11 +174,27 @@ const AdminCategory = () => {
           "Content-Type": "application/json",
           "X-CSRFToken": csrfToken,
         },
-        body: dataToSend,
+        body: JSON.stringify({
+          name: formData.name,
+          icon_name: formData.icon_name,
+        }),
       });
+
       if (res.ok) {
+        triggerAlert(
+          editingId ? "Categoria atualizada!" : "Categoria criada!",
+          "success",
+        );
         setShowForm(false);
+        setEditingId(null);
         fetchData();
+      } else {
+        const errorData = await res.json();
+        console.error("Erro do Django:", errorData);
+        triggerAlert(
+          "Erro: " + (errorData.detail || "Dados inválidos"),
+          "error",
+        );
       }
     } catch (err) {
       triggerAlert("Erro ao salvar categoria");
@@ -206,7 +256,7 @@ const AdminCategory = () => {
                   <Edit2 size={16} />
                 </button>
                 <button
-                  onClick={() => handleDelete(cat.id)}
+                  onClick={() => setCategoryToDelete(cat)}
                   className="p-3 text-red-200 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                 >
                   <Trash2 size={18} />
@@ -310,11 +360,48 @@ const AdminCategory = () => {
           </form>
         </div>
       )}
+      {categoryToDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[200]">
+          <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center">
+            <div className="bg-red-100 text-red-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trash2 size={32} />
+            </div>
+            <h3 className="text-xl font-black text-gray-800">Tem certeza?</h3>
+            <p className="text-gray-500 text-sm mt-2">
+              Você está prestes a excluir{" "}
+              <strong>{categoryToDelete.name}</strong>. Esta ação não pode ser
+              desfeita.
+            </p>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setCategoryToDelete(null)}
+                className="flex-1 px-4 py-2 bg-gray-100 text-gray-500 font-bold rounded-xl hover:bg-gray-200"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  handleDelete(categoryToDelete.id);
+                  setCategoryToDelete(null); // Fecha após deletar
+                }}
+                className="flex-1 px-4 py-2 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {alertPopup && (
         <div className="fixed bottom-5 right-5 z-[100] animate-bounce-short">
-          <div className="bg-white border-l-4 border-amber-500 p-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[320px]">
-            <div className="bg-amber-100 p-2 rounded-full text-amber-600">
-              <AlertTriangle size={20} />
+          <div
+            className={`bg-white border-l-4 ${alertStyles[alertType]?.border || "border-blue-500"} p-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[320px]`}
+          >
+            <div
+              className={`${alertStyles[alertType]?.bgIcon || "bg-blue-100"} p-2 rounded-full ${alertStyles[alertType]?.textColor || "text-blue-600"}`}
+            >
+              {alertStyles[alertType]?.icon || <AlertTriangle size={20} />}
             </div>
             <div className="flex-1">
               <p className="text-sm font-bold text-gray-900 italic">

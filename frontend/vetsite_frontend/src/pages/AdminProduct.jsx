@@ -85,6 +85,12 @@ const AdminProduct = () => {
         fetch("/api/products/"),
         fetch("/api/categories/"),
       ]);
+
+      if (resProd.status === 401 || resProd.status === 403) {
+        window.location.href = "/login";
+        return;
+      }
+
       const dataProd = await resProd.json();
       const dataCat = await resCat.json();
       setProducts(dataProd);
