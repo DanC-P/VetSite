@@ -122,3 +122,11 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_NAME = 'csrftoken'
 SESSION_COOKIE_NAME = 'sessionid'
 SESSION_SAVE_EVERY_REQUEST = True
+
+#Configuração de Email
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'danielsantoscosta16@gmail.com'
+EMAIL_HOST_PASSWORD = 'gizu avsd firn hivu'
