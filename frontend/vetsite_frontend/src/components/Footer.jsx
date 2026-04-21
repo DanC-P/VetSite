@@ -13,7 +13,7 @@ import {
   CreditCard,
 } from "lucide-react";
 
-const Footer = () => {
+const Footer = ({ config }) => {
   return (
     <footer id="contato" className="bg-gray-800 text-gray-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -46,7 +46,7 @@ const Footer = () => {
                 (Icon, index) => (
                   <a
                     key={index}
-                    href="#"
+                    href="/"
                     className="w-9 h-9 bg-gray-700 hover:bg-teal-600 rounded-lg flex items-center justify-center transition-colors"
                   >
                     <Icon size={16} />
@@ -61,22 +61,28 @@ const Footer = () => {
             <h3 className="font-bold text-white mb-4">Links Úteis</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="hover:text-teal-400 transition-colors">
+                <a
+                  href="/sobre"
+                  className="hover:text-teal-400 transition-colors"
+                >
                   Sobre Nós
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-teal-400 transition-colors">
+                <a href="/" className="hover:text-teal-400 transition-colors">
                   Blog
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-teal-400 transition-colors">
+                <a
+                  href="/sobre"
+                  className="hover:text-teal-400 transition-colors"
+                >
                   Trabalhe Conosco
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-teal-400 transition-colors">
+                <a href="/" className="hover:text-teal-400 transition-colors">
                   Fidelidade
                 </a>
               </li>
@@ -88,22 +94,22 @@ const Footer = () => {
             <h3 className="font-bold text-white mb-4">Ajuda</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="hover:text-teal-400 transition-colors">
+                <a href="/" className="hover:text-teal-400 transition-colors">
                   Central de Ajuda
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-teal-400 transition-colors">
+                <a href="/" className="hover:text-teal-400 transition-colors">
                   Como Comprar
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-teal-400 transition-colors">
+                <a href="/" className="hover:text-teal-400 transition-colors">
                   Rastrear Pedido
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-teal-400 transition-colors">
+                <a href="/" className="hover:text-teal-400 transition-colors">
                   Política de Troca
                 </a>
               </li>
@@ -116,11 +122,11 @@ const Footer = () => {
             <ul className="space-y-3 text-sm">
               <li className="flex items-center gap-2">
                 <Phone size={16} className="text-teal-400" />{" "}
-                <span>(83) 4002-8922</span>
+                <span>{config.whatsapp_number}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Mail size={16} className="text-teal-400" />{" "}
-                <span>contato@vetsite.com</span>
+                <span>{config.email_contact}</span>
               </li>
               <li className="flex items-start gap-2">
                 <MapPin size={16} className="text-teal-400 mt-0.5" />{" "}
@@ -129,7 +135,7 @@ const Footer = () => {
               <li className="flex items-center gap-2">
                 <MessageCircle size={16} className="text-teal-400" />
                 <a
-                  href="https://wa.me/5583999999999"
+                  href="/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-teal-300 transition-colors"

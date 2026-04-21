@@ -160,7 +160,7 @@ const Products = () => {
             </>
           )}
 
-          <Footer />
+          <Footer config={configuration} />
         </div>
       </>
     </div>
