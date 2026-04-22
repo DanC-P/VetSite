@@ -1,26 +1,30 @@
+// --- IMPORTANDO BIBLIOTECAS ---
 import React, { useState } from "react";
-import { MessageCircle, AlertTriangle, X } from "lucide-react"; // Adicionei ícones para o alerta
+import { MessageCircle, AlertTriangle, X } from "lucide-react";
 
+/**
+ * COMPONENTE: ProductCard
+ * Objetivo: Exibir informações essenciais do produto e gerenciar a intenção de compra.
+ * Diferenciais: Lógica de cálculo de desconto, badge de estoque e tratamento de erros de imagem.
+ */
 const ProductCard = ({ product, onOpen, config }) => {
   const [showConfigAlert, setShowConfigAlert] = useState(false);
 
-  if (!product) return null;
+  // Early return caso o produto seja inválido ou esteja inativo
+  if (!product || !product.is_active) return null;
 
-  const {
-    title,
-    price,
-    old_price,
-    fr_group,
-    image,
-    is_active,
-    stock_quantity,
-  } = product;
+  const { title, price, old_price, fr_group, image, stock_quantity } = product;
 
-  if (!is_active) return null;
+  // --- LÓGICA DE NEGÓCIO ---
+  const isOutOfStock = Number(stock_quantity) <= 0;
+  const hasDiscount = Number(old_price) > Number(price);
+  const discountPercentage = hasDiscount
+    ? Math.round(100 - (price * 100) / old_price)
+    : 0;
 
   const handleRedirectWatts = (e) => {
     e.preventDefault();
-    e.stopPropagation();
+    e.stopPropagation(); // Evita abrir o modal ao clicar no botão de compra
 
     const isValid = (v) => v && v !== "" && v !== "undefined";
     const phone = config?.whatsapp_number;
@@ -31,24 +35,27 @@ const ProductCard = ({ product, onOpen, config }) => {
         : "Olá! Gostaria de comprar o produto:";
 
       const message = `${msgBase} ${title}`;
-      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+      const url = `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
       window.open(url, "_blank");
     } else {
+      // Feedback visual caso o admin não tenha configurado o contato
       setShowConfigAlert(true);
       setTimeout(() => setShowConfigAlert(false), 4000);
     }
   };
 
-  const categoryName = fr_group?.name || "Pet Shop";
+  const categoryName = fr_group?.name || "Geral";
 
   return (
     <>
       {/* 1. CARD DO PRODUTO */}
       <div
         onClick={() => onOpen(product)}
-        className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:-translate-y-2 transition-all duration-300 group cursor-pointer"
+        className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 
+                   hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group cursor-pointer"
       >
-        <div className="relative aspect-square bg-gray-50 flex items-center justify-center">
+        {/* CONTAINER DA IMAGEM */}
+        <div className="relative aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
           {image ? (
             <img
               src={
@@ -57,61 +64,64 @@ const ProductCard = ({ product, onOpen, config }) => {
                   : `http://127.0.0.1:8000${image}`
               }
               alt={title}
-              className="w-full h-full object-contain mix-blend-multiply"
+              className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
               onError={(e) => {
-                e.target.src = "https://via.placeholder.com/200?text=PetShop";
+                e.target.src =
+                  "https://via.placeholder.com/400?text=Produto+Sem+Foto";
               }}
             />
           ) : (
             <div className="text-gray-300 italic text-xs">Sem imagem</div>
           )}
 
-          {Number(stock_quantity) <= 0 && (
-            <span className="absolute top-3 left-3 z-20 px-3 py-1.5 bg-[#FF0000] text-white text-[10px] font-bold rounded-lg uppercase shadow-sm">
+          {/* BADGES: Esgotado ou Desconto */}
+          {isOutOfStock ? (
+            <div className="absolute top-3 left-3 z-20 px-3 py-1 bg-red-600 text-white text-[10px] font-bold rounded-lg uppercase">
               Esgotado
-            </span>
-          )}
-
-          {Number(stock_quantity) > 0 && Number(old_price) > Number(price) && (
-            <span className="absolute top-3 right-3 z-20 px-2 py-1 bg-teal-600 text-white text-[10px] font-bold rounded-lg uppercase shadow-sm">
-              {Math.round(100 - (price * 100) / old_price)}% OFF
-            </span>
+            </div>
+          ) : (
+            hasDiscount && (
+              <div className="absolute top-3 right-3 z-20 px-2 py-1 bg-teal-600 text-white text-[10px] font-bold rounded-lg uppercase animate-pulse">
+                {discountPercentage}% OFF
+              </div>
+            )
           )}
         </div>
 
-        <div className="p-4">
-          <p className="text-[10px] text-teal-600 font-bold uppercase tracking-wider mb-1">
+        {/* INFORMAÇÕES DO PRODUTO */}
+        <div className="p-4 flex flex-col h-full">
+          <p className="text-[10px] text-teal-600 font-bold uppercase tracking-widest mb-1">
             {categoryName}
           </p>
-          <h3 className="font-bold text-gray-800 text-sm mb-2 line-clamp-2 h-10">
+          <h3 className="font-bold text-gray-800 text-sm mb-3 line-clamp-2 h-10 group-hover:text-teal-600 transition-colors">
             {title}
           </h3>
 
-          <div className="flex items-center justify-between mt-auto">
+          <div className="flex items-end justify-between mt-auto">
             <div>
-              {Number(old_price) > Number(price) && (
+              {hasDiscount && (
                 <span className="text-xs text-gray-400 line-through block">
-                  R${" "}
                   {Number(old_price).toLocaleString("pt-BR", {
-                    minimumFractionDigits: 2,
+                    style: "currency",
+                    currency: "BRL",
                   })}
                 </span>
               )}
-              <span className="block text-lg font-extrabold text-teal-600">
-                R${" "}
+              <span className="block text-lg font-black text-teal-600">
                 {Number(price).toLocaleString("pt-BR", {
-                  minimumFractionDigits: 2,
+                  style: "currency",
+                  currency: "BRL",
                 })}
               </span>
             </div>
 
             <button
               onClick={handleRedirectWatts}
-              disabled={Number(stock_quantity) <= 0}
-              className={`p-2.5 rounded-full text-white transition-colors ${
-                Number(stock_quantity) <= 0
-                  ? "bg-gray-300 cursor-not-allowed"
-                  : "bg-teal-500 hover:bg-teal-600 shadow-md active:scale-95"
+              disabled={isOutOfStock}
+              className={`p-3 rounded-xl text-white transition-all shadow-md ${
+                isOutOfStock
+                  ? "bg-gray-200 cursor-not-allowed text-gray-400"
+                  : "bg-teal-500 hover:bg-teal-600 active:scale-90"
               }`}
             >
               <MessageCircle size={18} />
@@ -120,29 +130,26 @@ const ProductCard = ({ product, onOpen, config }) => {
         </div>
       </div>
 
-      {/* 2. ALERTA FLUTUANTE (Renderizado fora do card para não quebrar layout) */}
+      {/* 2. ALERTA DE CONFIGURAÇÃO (Toast Notification) */}
       {showConfigAlert && (
-        <div className="fixed bottom-5 right-5 z-[100] animate-bounce-short">
-          <div className="bg-white border-l-4 border-amber-500 p-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[300px]">
-            <div className="bg-amber-100 p-2 rounded-full">
-              <AlertTriangle className="text-amber-600 w-5 h-5" />
+        <div className="fixed bottom-5 right-5 z-[100] animate-in slide-in-from-right-full">
+          <div className="bg-white border-l-4 border-amber-500 p-4 rounded-xl shadow-2xl flex items-center gap-3">
+            <div className="bg-amber-100 p-2 rounded-full text-amber-600">
+              <AlertTriangle size={20} />
             </div>
-            <div className="flex-1">
+            <div className="pr-4">
               <p className="text-sm font-bold text-gray-900">
-                Configuração Pendente
+                Configuração Necessária
               </p>
               <p className="text-xs text-gray-500">
-                O WhatsApp não foi configurado.
+                O WhatsApp não foi definido no painel.
               </p>
             </div>
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowConfigAlert(false);
-              }}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              onClick={() => setShowConfigAlert(false)}
+              className="text-gray-400 hover:text-gray-600"
             >
-              <X size={16} className="text-gray-400" />
+              <X size={16} />
             </button>
           </div>
         </div>

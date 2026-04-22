@@ -1,3 +1,13 @@
+/**
+ * BARREL EXPORT PATTERN
+ * Este arquivo centraliza todas as exportações da pasta 'components'.
+ * * Vantagens para o projeto:
+ * 1. Limpeza de Código: Permite importar múltiplos componentes em uma única linha nas páginas.
+ * Ex: import { Hero, Navbar, Footer } from "../components";
+ * 2. Manutenibilidade: Se o local de um componente mudar, alteramos apenas aqui.
+ * 3. Organização: Facilita a visualização rápida de todos os componentes disponíveis no sistema.
+ */
+
 export { default as AdminHeader } from "./AdminHeader";
 export { default as Categories } from "./Categories";
 export { default as Features } from "./Features";
