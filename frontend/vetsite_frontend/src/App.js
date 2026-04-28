@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-  Outlet,
-} from "react-router-dom";
+import { Outlet } from "react-router-dom";
 
 function App() {
   return (

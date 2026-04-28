@@ -7,12 +7,9 @@ import {
   Trash2,
   Plus,
   X,
-  AlertTriangle,
-  AlertCircle,
-  CheckCircle,
-  Info,
 } from "lucide-react";
 import { useLocation, useOutletContext } from "react-router-dom";
+import { Toast } from "../components";
 
 const AdminProduct = () => {
   // --- ESTADOS ---
@@ -23,9 +20,6 @@ const AdminProduct = () => {
   const [editingId, setEditingId] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [alertPopup, setAlertPopup] = useState(false);
-  const [alertText, setAlertText] = useState("");
-  const [alertType, setAlertType] = useState("");
   const [productToDelete, setProductToDelete] = useState(null);
 
   const location = useLocation();
@@ -34,6 +28,13 @@ const AdminProduct = () => {
   const { csrfToken } = useOutletContext();
 
   const formRef = useRef(null);
+
+  // Estado do Toast
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "info",
+  });
 
   /// --- FORMULÁRIO VAZIO ---
   const [formData, setFormData] = useState({
@@ -47,35 +48,9 @@ const AdminProduct = () => {
     is_featured: false,
   });
 
-  /// --- GATILHO DO MODAL ---
+  /// --- GATILHO DO TOAST ---
   const triggerAlert = (message, type) => {
-    setAlertText(message);
-    setAlertPopup(true);
-    setAlertType(type || "info");
-
-    setTimeout(() => setAlertPopup(false), 5000);
-  };
-
-  /// --- ESTILO DINÂMICO DO MODAL ///
-  const alertStyles = {
-    error: {
-      border: "border-red-500",
-      bgIcon: "bg-red-100",
-      textColor: "text-red-600",
-      icon: <AlertCircle size={20} />,
-    },
-    success: {
-      border: "border-green-500",
-      bgIcon: "bg-green-100",
-      textColor: "text-green-600",
-      icon: <CheckCircle size={20} />,
-    },
-    info: {
-      border: "border-blue-500",
-      bgIcon: "bg-blue-100",
-      textColor: "text-blue-600",
-      icon: <Info size={20} />,
-    },
+    setToast({ show: true, message, type });
   };
 
   // --- BUSCA DE DADOS ---
@@ -242,11 +217,14 @@ const AdminProduct = () => {
       return triggerAlert("Adicione uma imagem.", "info");
 
     const data = new FormData();
-
     Object.keys(formData).forEach((key) => {
       data.append(key, formData[key]);
     });
-    data.append("image", imageFile);
+
+    // Só anexa se houver um NOVO arquivo selecionado
+    if (imageFile instanceof File) {
+      data.append("image", imageFile);
+    }
 
     const url = editingId ? `/api/products/${editingId}/` : "/api/products/";
     const method = editingId ? "PATCH" : "POST";
@@ -743,30 +721,13 @@ const AdminProduct = () => {
           </div>
         </div>
       )}
-      {alertPopup && (
-        <div className="fixed bottom-5 right-5 z-[100] animate-bounce-short">
-          <div
-            className={`bg-white border-l-4 ${alertStyles[alertType]?.border || "border-blue-500"} p-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[320px]`}
-          >
-            <div
-              className={`${alertStyles[alertType]?.bgIcon || "bg-blue-100"} p-2 rounded-full ${alertStyles[alertType]?.textColor || "text-blue-600"}`}
-            >
-              {alertStyles[alertType]?.icon || <AlertTriangle size={20} />}
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-gray-900 italic">
-                Notificação
-              </p>
-              <p className="text-xs text-gray-600">{alertText}</p>
-            </div>
-            <button
-              onClick={() => setAlertPopup(false)}
-              className="p-1 hover:bg-gray-100 rounded-full text-gray-400"
-            >
-              <X size={18} />
-            </button>
-          </div>
-        </div>
+      {/* Sistema de Alerta Centralizado */}
+      {toast.show && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ ...toast, show: false })}
+        />
       )}
     </div>
   );

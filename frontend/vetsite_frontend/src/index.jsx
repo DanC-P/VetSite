@@ -8,6 +8,8 @@ import {
   Navigate,
   RouterProvider,
 } from "react-router-dom";
+
+// Importação das suas Pages
 import {
   Home,
   Login,
@@ -20,29 +22,24 @@ import {
   AboutUs,
   Contact,
 } from "./pages";
-import PrivateRoute from "./components/PrivateRoute";
 
+// Importação dos Componentes de Segurança e Contexto
+import PrivateRoute from "./components/PrivateRoute";
+import { ConfigProvider } from "./context/ConfigContext";
+
+/**
+ * DEFINIÇÃO DAS ROTAS
+ * Usamos a estrutura de objetos do createBrowserRouter
+ */
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: <App />, // O App contém o Outlet para as rotas públicas
     children: [
-      {
-        path: "/",
-        element: <Home />,
-      },
-      {
-        path: "/produtos",
-        element: <Products />,
-      },
-      {
-        path: "/sobre",
-        element: <AboutUs />,
-      },
-      {
-        path: "/contato",
-        element: <Contact />,
-      },
+      { index: true, element: <Home /> },
+      { path: "produtos", element: <Products /> },
+      { path: "sobre", element: <AboutUs /> },
+      { path: "contato", element: <Contact /> },
     ],
   },
   {
@@ -61,22 +58,10 @@ const router = createBrowserRouter([
         index: true,
         element: <Navigate to="/dashboard/overview" replace />,
       },
-      {
-        path: "overview",
-        element: <AdminOverview />,
-      },
-      {
-        path: "reg_produtos",
-        element: <AdminProduct />,
-      },
-      {
-        path: "reg_categorias",
-        element: <AdminCategory />,
-      },
-      {
-        path: "config_site",
-        element: <AdminConfigSite />,
-      },
+      { path: "overview", element: <AdminOverview /> },
+      { path: "reg_produtos", element: <AdminProduct /> },
+      { path: "reg_categorias", element: <AdminCategory /> },
+      { path: "config_site", element: <AdminConfigSite /> },
     ],
   },
   {
@@ -85,10 +70,18 @@ const router = createBrowserRouter([
   },
 ]);
 
+/**
+ * RENDERIZAÇÃO PRINCIPAL
+ * O ConfigProvider envolve o RouterProvider para que
+ * o contexto flutue por todas as rotas.
+ * Sendo ConfigProvider o responsável por "distribuir" os dados de configuração.
+ */
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <ConfigProvider>
+      <RouterProvider router={router} />
+    </ConfigProvider>
   </React.StrictMode>,
 );
 

@@ -14,14 +14,15 @@ import {
   Scissors,
   PawPrint,
   Edit2,
-  AlertTriangle,
-  AlertCircle,
-  CheckCircle,
-  Info,
 } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
+import { Toast } from "../components";
 
-// Mapeamento de ícones para renderização dinâmica
+/**
+ * MAPEAMENTO DE ÍCONES:
+ * Como o banco de dados (Django) guarda apenas o nome (string) do ícone,
+ * este objeto traduz essa string para o componente React do Lucide.
+ */
 const ICON_MAP = {
   Dog: <Dog />,
   Cat: <Cat />,
@@ -33,63 +34,56 @@ const ICON_MAP = {
   ShieldCheck: <ShieldCheck />,
 };
 
+// Transforma as chaves do mapa em um array para facilitar a renderização dos botões de escolha
 const ICON_OPTIONS = Object.keys(ICON_MAP).map((name) => ({
   name,
   icon: ICON_MAP[name],
 }));
 
 const AdminCategory = () => {
+  // --- ESTADOS DA LISTAGEM E UI ---
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const formRef = useRef(null);
+  const formRef = useRef(null); // Referência para scroll automático até o formulário
+
+  // --- ESTADOS DE EDIÇÃO E EXCLUSÃO ---
   const [editingId, setEditingId] = useState(null);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
-  const [alertPopup, setAlertPopup] = useState(false);
-  const [alertText, setAlertText] = useState("");
-  const [alertType, setAlertType] = useState("");
 
+  // Estado do Toast
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "info",
+  });
+
+  // Token CSRF vindo do Layout Pai (Dashboard/Outlet)
   const { csrfToken } = useOutletContext();
 
+  // Dados do formulário
   const [formData, setFormData] = useState({
     name: "",
     icon_name: "Dog",
   });
 
-  const alertStyles = {
-    error: {
-      border: "border-red-500",
-      bgIcon: "bg-red-100",
-      textColor: "text-red-600",
-      icon: <AlertCircle size={20} />,
-    },
-    success: {
-      border: "border-green-500",
-      bgIcon: "bg-green-100",
-      textColor: "text-green-600",
-      icon: <CheckCircle size={20} />,
-    },
-    info: {
-      border: "border-blue-500",
-      bgIcon: "bg-blue-100",
-      textColor: "text-blue-600",
-      icon: <Info size={20} />,
-    },
-  };
-
+  /**
+   * BUSCA DE DADOS: Puxa todas as categorias do Django
+   */
   const fetchData = useCallback(async () => {
     try {
       const res = await fetch("/api/categories/");
 
+      // Redireciona se houver erro de permissão (Sessão expirada)
       if (res.status === 401 || res.status === 403) {
-        window.location.href = "/login"; // Ou a sua rota de login
+        window.location.href = "/login";
         return;
       }
 
       const data = await res.json();
       setCategories(Array.isArray(data) ? data : []);
     } catch (err) {
-      triggerAlert("Erro ao carregar categorias");
+      triggerAlert("Erro ao carregar categorias", "error");
       console.error("Erro ao sincronizar:", err);
     } finally {
       setLoading(false);
@@ -100,23 +94,28 @@ const AdminCategory = () => {
     fetchData();
   }, [fetchData]);
 
+  /// --- GATILHO DO TOAST ---
   const triggerAlert = (message, type) => {
-    setAlertText(message);
-    setAlertPopup(true);
-    setAlertType(type || "info");
-
-    setTimeout(() => setAlertPopup(false), 5000);
+    setToast({ show: true, message, type });
   };
 
+  /**
+   * Prepara o formulário para uma nova categoria
+   */
   const handleOpenNewForm = () => {
     setFormData({ name: "", icon_name: "Dog" });
+    setEditingId(null);
     setShowForm(true);
+    // Scroll suave para o formulário após a renderização
     setTimeout(
       () => formRef.current?.scrollIntoView({ behavior: "smooth" }),
       100,
     );
   };
 
+  /**
+   * EXCLUSÃO: Deleta uma categoria via API
+   */
   const handleDelete = async (id) => {
     try {
       const res = await fetch(`/api/categories/${id}/`, {
@@ -127,16 +126,16 @@ const AdminCategory = () => {
         triggerAlert("Categoria excluída com sucesso!", "success");
         fetchData();
       } else {
-        const errorData = await res.json();
         triggerAlert("Erro ao deletar categoria.", "error");
-        console.error("Erro do Django:", errorData);
       }
     } catch (err) {
       triggerAlert("Erro ao excluir categoria.");
-      console.error("Erro ao excluir:", err);
     }
   };
 
+  /**
+   * EDIÇÃO: Preenche o formulário com dados existentes
+   */
   const handleEdit = (category) => {
     setEditingId(category.id);
     setFormData({
@@ -147,18 +146,19 @@ const AdminCategory = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  /**
+   * SUBMIT: Criação (POST) ou Atualização (PATCH)
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!csrfToken) {
-      triggerAlert(
-        "Erro de segurança: Token CSRF não encontrado. Tente atualizar a página.",
-      );
+      triggerAlert("Erro de segurança: Token CSRF ausente.", "error");
       return;
     }
 
-    if (!formData.name || !formData.icon_name) {
-      triggerAlert("Preencha todos os campos obrigatórios.");
+    if (!formData.name) {
+      triggerAlert("O nome da categoria é obrigatório.");
       return;
     }
 
@@ -174,10 +174,7 @@ const AdminCategory = () => {
           "Content-Type": "application/json",
           "X-CSRFToken": csrfToken,
         },
-        body: JSON.stringify({
-          name: formData.name,
-          icon_name: formData.icon_name,
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (res.ok) {
@@ -190,7 +187,6 @@ const AdminCategory = () => {
         fetchData();
       } else {
         const errorData = await res.json();
-        console.error("Erro do Django:", errorData);
         triggerAlert(
           "Erro: " + (errorData.detail || "Dados inválidos"),
           "error",
@@ -198,9 +194,10 @@ const AdminCategory = () => {
       }
     } catch (err) {
       triggerAlert("Erro ao salvar categoria");
-      console.error("Erro ao salvar:", err);
     }
   };
+
+  // --- RENDERS ---
 
   if (loading)
     return (
@@ -209,7 +206,7 @@ const AdminCategory = () => {
 
   return (
     <div className="p-8 max-w-7xl mx-auto w-full animate-in fade-in duration-500">
-      {/* Header */}
+      {/* HEADER DA PÁGINA */}
       <div className="flex justify-between items-center mb-8">
         <div>
           <h2 className="text-xl font-bold text-gray-800">
@@ -227,7 +224,7 @@ const AdminCategory = () => {
         </button>
       </div>
 
-      {/* Grid ou Empty State */}
+      {/* GRID DE CATEGORIAS CADASTRADAS */}
       <div className="mb-12">
         {categories.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -237,6 +234,7 @@ const AdminCategory = () => {
                 className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between group hover:border-teal-200 transition-all"
               >
                 <div className="flex items-center gap-4">
+                  {/* Renderização dinâmica do ícone baseado no mapeamento global */}
                   <div className="w-16 h-16 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center shadow-inner">
                     {ICON_MAP[cat.icon_name] || <List />}
                   </div>
@@ -245,41 +243,41 @@ const AdminCategory = () => {
                       {cat.name}
                     </h4>
                     <p className="text-xs text-gray-400 font-bold italic">
-                      Identificador: {cat.icon_name}
+                      ID do Ícone: {cat.icon_name}
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleEdit(cat)}
-                  className="p-3 text-red-200 hover:text-blue-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
-                >
-                  <Edit2 size={16} />
-                </button>
-                <button
-                  onClick={() => setCategoryToDelete(cat)}
-                  className="p-3 text-red-200 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
-                >
-                  <Trash2 size={18} />
-                </button>
+
+                {/* Ações: Editar e Excluir */}
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => handleEdit(cat)}
+                    className="p-3 text-gray-200 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                  >
+                    <Edit2 size={16} />
+                  </button>
+                  <button
+                    onClick={() => setCategoryToDelete(cat)}
+                    className="p-3 text-gray-200 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         ) : (
+          /* Estado Vazio */
           <div className="w-full flex flex-col items-center justify-center py-24 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm">
-            <div className="bg-gray-50 p-6 rounded-3xl mb-4">
-              <PawPrint className="text-gray-200" size={64} />
-            </div>
-            <h3 className="text-xl font-bold text-gray-400 italic uppercase tracking-tight text-center">
+            <PawPrint className="text-gray-100 mb-4" size={64} />
+            <h3 className="text-xl font-bold text-gray-400 italic uppercase tracking-tight">
               Nenhuma categoria encontrada
             </h3>
-            <p className="text-sm text-gray-400 mt-2 text-center px-4">
-              Sua vitrine está vazia. Comece criando uma nova categoria acima.
-            </p>
           </div>
         )}
       </div>
 
-      {/* Formulário Refatorado */}
+      {/* FORMULÁRIO DE CATEGORIA (Renderiza apenas se showForm for true) */}
       {showForm && (
         <div
           ref={formRef}
@@ -299,7 +297,7 @@ const AdminCategory = () => {
 
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Nome */}
+              {/* Campo Nome */}
               <div>
                 <label className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2 block">
                   Nome da Categoria
@@ -315,10 +313,10 @@ const AdminCategory = () => {
                 />
               </div>
 
-              {/* Preview do Ícone que agora é a "Capa" */}
+              {/* Preview Grande do Ícone Selecionado */}
               <div className="flex flex-col items-center justify-center bg-gray-50 rounded-3xl p-4 border border-dashed border-gray-200">
                 <span className="text-[10px] font-black text-gray-300 uppercase mb-2">
-                  Visualização do Ícone
+                  Visualização da Capa
                 </span>
                 <div className="text-teal-600 scale-[2.0]">
                   {ICON_MAP[formData.icon_name]}
@@ -326,7 +324,7 @@ const AdminCategory = () => {
               </div>
             </div>
 
-            {/* Seleção de Ícone */}
+            {/* SELEÇÃO DE ÍCONES: Mapeia as opções disponíveis para botões clicáveis */}
             <div>
               <label className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 block">
                 Selecione o Ícone Representativo
@@ -360,6 +358,8 @@ const AdminCategory = () => {
           </form>
         </div>
       )}
+
+      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO */}
       {categoryToDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[200]">
           <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center">
@@ -368,24 +368,22 @@ const AdminCategory = () => {
             </div>
             <h3 className="text-xl font-black text-gray-800">Tem certeza?</h3>
             <p className="text-gray-500 text-sm mt-2">
-              Você está prestes a excluir{" "}
-              <strong>{categoryToDelete.name}</strong>. Esta ação não pode ser
-              desfeita.
+              Você está excluindo <strong>{categoryToDelete.name}</strong>. Esta
+              ação é irreversível.
             </p>
-
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setCategoryToDelete(null)}
-                className="flex-1 px-4 py-2 bg-gray-100 text-gray-500 font-bold rounded-xl hover:bg-gray-200"
+                className="flex-1 px-4 py-2 bg-gray-100 text-gray-500 font-bold rounded-xl"
               >
                 Cancelar
               </button>
               <button
                 onClick={() => {
                   handleDelete(categoryToDelete.id);
-                  setCategoryToDelete(null); // Fecha após deletar
+                  setCategoryToDelete(null);
                 }}
-                className="flex-1 px-4 py-2 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700"
+                className="flex-1 px-4 py-2 bg-red-600 text-white font-bold rounded-xl"
               >
                 Excluir
               </button>
@@ -393,30 +391,14 @@ const AdminCategory = () => {
           </div>
         </div>
       )}
-      {alertPopup && (
-        <div className="fixed bottom-5 right-5 z-[100] animate-bounce-short">
-          <div
-            className={`bg-white border-l-4 ${alertStyles[alertType]?.border || "border-blue-500"} p-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[320px]`}
-          >
-            <div
-              className={`${alertStyles[alertType]?.bgIcon || "bg-blue-100"} p-2 rounded-full ${alertStyles[alertType]?.textColor || "text-blue-600"}`}
-            >
-              {alertStyles[alertType]?.icon || <AlertTriangle size={20} />}
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-gray-900 italic">
-                Notificação
-              </p>
-              <p className="text-xs text-gray-600">{alertText}</p>
-            </div>
-            <button
-              onClick={() => setAlertPopup(false)}
-              className="p-1 hover:bg-gray-100 rounded-full text-gray-400"
-            >
-              <X size={18} />
-            </button>
-          </div>
-        </div>
+
+      {/* Sistema de Alerta Centralizado */}
+      {toast.show && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ ...toast, show: false })}
+        />
       )}
     </div>
   );

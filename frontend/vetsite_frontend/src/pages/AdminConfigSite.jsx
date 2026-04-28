@@ -1,29 +1,24 @@
-import React, { useState, useEffect, useCallback } from "react";
-import {
-  Save,
-  UploadCloud,
-  PawPrint,
-  RefreshCcwDotIcon,
-  X,
-  AlertTriangle,
-  AlertCircle,
-  CheckCircle,
-  Info,
-} from "lucide-react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
+import { Save, UploadCloud, PawPrint, RefreshCcwDotIcon } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
+// IMPORTANTE: Importe o seu contexto global aqui
+import { ConfigContext } from "../context";
+import { Toast } from "../components";
 
 const AdminConfigSite = () => {
+  // --- ESTADOS DE UI E ALERTAS ---
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
-  const [alertPopup, setAlertPopup] = useState(false);
-  const [alertText, setAlertText] = useState("");
-  const [alertType, setAlertType] = useState("");
 
+  // --- CONTEXTOS ---
+  // Pegamos o csrfToken do Outlet (Router)
   const { csrfToken } = useOutletContext();
+  // Pegamos a função de atualizar do nosso Contexto Global (Solução para atualização dinâmica)
+  const { fetchConfig } = useContext(ConfigContext);
 
+  // --- ESTADOS DE FORMULÁRIO E ARQUIVOS ---
   const [logoFile, setLogoFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
-
   const [formData, setFormData] = useState({
     title_site: "",
     whatsapp_number: "",
@@ -31,60 +26,36 @@ const AdminConfigSite = () => {
     email_contact: "",
   });
 
-  // Função para disparar o alerta visual
+  // Estado do Toast
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "info",
+  });
+
+  /// --- GATILHO DO TOAST ---
   const triggerAlert = (message, type) => {
-    setAlertText(message);
-    setAlertPopup(true);
-    setAlertType(type || "info");
-
-    setTimeout(() => setAlertPopup(false), 5000);
+    setToast({ show: true, message, type });
   };
 
-  const alertStyles = {
-    error: {
-      border: "border-red-500",
-      bgIcon: "bg-red-100",
-      textColor: "text-red-600",
-      icon: <AlertCircle size={20} />,
-    },
-    success: {
-      border: "border-green-500",
-      bgIcon: "bg-green-100",
-      textColor: "text-green-600",
-      icon: <CheckCircle size={20} />,
-    },
-    info: {
-      border: "border-blue-500",
-      bgIcon: "bg-blue-100",
-      textColor: "text-blue-600",
-      icon: <Info size={20} />,
-    },
-  };
-
-  const fetchSettings = useCallback(async () => {
+  /**
+   * Busca as configurações iniciais para preencher o formulário.
+   * Usamos useCallback para evitar recriações desnecessárias da função.
+   */
+  const loadSettings = useCallback(async () => {
+    setLoading(true);
     try {
-      const resConfig = await fetch("/api/configuration/");
+      const res = await fetch("/api/configuration/");
 
-      if (resConfig.status === 401 || resConfig.status === 403) {
+      // Verificação de autenticação básica
+      if (res.status === 401 || res.status === 403) {
         window.location.href = "/login";
         return;
       }
 
-      const dataConfig = await resConfig.json();
-      return dataConfig;
-    } catch (err) {
-      triggerAlert("Erro ao carregar configurações.", "error");
-      console.error("Erro ao sincronizar:", err);
-      return null;
-    }
-  }, []);
-
-  const loadSettings = useCallback(async () => {
-    setLoading(true);
-    const data = await fetchSettings();
-
-    if (data) {
+      const data = await res.json();
       const config = Array.isArray(data) ? data[0] : data;
+
       if (config) {
         setEditingId(config.id);
         setFormData({
@@ -95,14 +66,22 @@ const AdminConfigSite = () => {
         });
         if (config.logo) setPreviewUrl(config.logo);
       }
+    } catch (err) {
+      triggerAlert("Erro ao carregar configurações.", "error");
+      console.error("Erro ao sincronizar:", err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  }, [fetchSettings]);
+  }, []);
 
+  // Efeito de montagem: carrega os dados assim que o componente abre
   useEffect(() => {
     loadSettings();
   }, [loadSettings]);
 
+  /**
+   * Handlers para mudanças nos inputs de texto e arquivos
+   */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -112,10 +91,13 @@ const AdminConfigSite = () => {
     const file = e.target.files[0];
     if (file) {
       setLogoFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      setPreviewUrl(URL.createObjectURL(file)); // Gera preview temporário da imagem
     }
   };
 
+  /**
+   * ENVIO DO FORMULÁRIO (Update/Create)
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -124,7 +106,7 @@ const AdminConfigSite = () => {
       return;
     }
 
-    // VALIDAÇÕES USANDO O ESTADO (formData)
+    // Validações simples de negócio
     if (
       formData.whatsapp_number.length > 0 &&
       formData.whatsapp_number.length < 10
@@ -138,15 +120,13 @@ const AdminConfigSite = () => {
       return;
     }
 
+    // Preparação do multipart/form-data para envio de arquivos (Logo)
     const dataToSend = new FormData();
     dataToSend.append("title_site", formData.title_site);
     dataToSend.append("whatsapp_number", formData.whatsapp_number);
     dataToSend.append("default_message", formData.default_message);
     dataToSend.append("email_contact", formData.email_contact);
-
-    if (logoFile) {
-      dataToSend.append("logo", logoFile);
-    }
+    if (logoFile) dataToSend.append("logo", logoFile);
 
     const url = editingId
       ? `/api/configuration/${editingId}/`
@@ -163,18 +143,24 @@ const AdminConfigSite = () => {
 
       if (response.ok) {
         triggerAlert("✅ Configurações salvas com sucesso!", "success");
-        loadSettings(); // Recarrega os dados para garantir sincronia
+
+        // --- A SOLUÇÃO DINÂMICA ---
+        // Aqui chamamos a função do Contexto Global.
+        // Isso faz com que o Header (lá no Dashboard pai) atualize na hora!
+        if (fetchConfig) await fetchConfig();
+
+        loadSettings(); // Recarrega o formulário localmente também
       } else {
-        const errData = await response.json();
-        console.error(errData);
         triggerAlert("Erro ao salvar no servidor.", "error");
       }
     } catch (err) {
       triggerAlert("Erro na conexão com o servidor.", "error");
-      console.error("Erro de rede:", err);
     }
   };
 
+  /**
+   * Reseta os campos do formulário visualmente
+   */
   const handleResetConfig = (e) => {
     e.preventDefault();
     setFormData({
@@ -187,6 +173,7 @@ const AdminConfigSite = () => {
     setLogoFile(null);
   };
 
+  // View de carregamento inicial
   if (loading)
     return (
       <div className="flex h-screen items-center justify-center">
@@ -207,7 +194,7 @@ const AdminConfigSite = () => {
         </div>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
-          {/* Logo Upload Section */}
+          {/* SEÇÃO DE LOGO: Upload e Preview */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
             <div className="md:col-span-2">
               <label className="block text-sm font-semibold text-gray-700 mb-4">
@@ -251,7 +238,7 @@ const AdminConfigSite = () => {
             </div>
           </div>
 
-          {/* Título */}
+          {/* INPUTS DE TEXTO */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Título do Site
@@ -265,7 +252,6 @@ const AdminConfigSite = () => {
             />
           </div>
 
-          {/* WhatsApp e Email */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -276,7 +262,7 @@ const AdminConfigSite = () => {
                 name="whatsapp_number"
                 value={formData.whatsapp_number}
                 onChange={(e) => {
-                  // FILTRO DE NÚMEROS: Remove qualquer letra instantaneamente
+                  // Filtro para aceitar apenas dígitos
                   const onlyNums = e.target.value.replace(/\D/g, "");
                   setFormData((prev) => ({
                     ...prev,
@@ -301,7 +287,6 @@ const AdminConfigSite = () => {
             </div>
           </div>
 
-          {/* Mensagem Padrão */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Mensagem Padrão (WhatsApp)
@@ -315,7 +300,7 @@ const AdminConfigSite = () => {
             />
           </div>
 
-          {/* Botões */}
+          {/* AÇÕES FINAIS */}
           <div className="flex justify-end gap-3 pt-6 border-t">
             <button
               type="button"
@@ -336,31 +321,13 @@ const AdminConfigSite = () => {
         </form>
       </div>
 
-      {/* Pop-up de Alerta Personalizado */}
-      {alertPopup && (
-        <div className="fixed bottom-5 right-5 z-[100] animate-bounce-short">
-          <div
-            className={`bg-white border-l-4 ${alertStyles[alertType]?.border || "border-blue-500"} p-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[320px]`}
-          >
-            <div
-              className={`${alertStyles[alertType]?.bgIcon || "bg-blue-100"} p-2 rounded-full ${alertStyles[alertType]?.textColor || "text-blue-600"}`}
-            >
-              {alertStyles[alertType]?.icon || <AlertTriangle size={20} />}
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-gray-900 italic">
-                Notificação
-              </p>
-              <p className="text-xs text-gray-600">{alertText}</p>
-            </div>
-            <button
-              onClick={() => setAlertPopup(false)}
-              className="p-1 hover:bg-gray-100 rounded-full text-gray-400"
-            >
-              <X size={18} />
-            </button>
-          </div>
-        </div>
+      {/* Sistema de Alerta Centralizado */}
+      {toast.show && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ ...toast, show: false })}
+        />
       )}
     </div>
   );
