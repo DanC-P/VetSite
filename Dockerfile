@@ -22,6 +22,4 @@ COPY . .
 COPY --from=frontend-build /app/frontend/vetsite_frontend/build /app/frontend/vetsite_frontend/build
 
 # Comando de inicialização
-CMD python manage.py migrate && \
-    python manage.py collectstatic --noinput && \
-    gunicorn VetSite.wsgi --bind 0.0.0.0:$PORT
+CMD ["/bin/bash", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn VetSite.wsgi --bind 0.0.0.0:$PORT"]
