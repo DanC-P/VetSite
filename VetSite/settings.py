@@ -103,11 +103,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_CREDENTIALS = True
 
-# O Django autoriza o React (3000) a enviar pedidos
-CORS_ALLOWED_ORIGINS = ['*']
+# O Django autoriza o React a enviar pedidos
+CORS_ALLOW_ALL_ORIGINS = True
 
 # O Django confia nas requisições vindas dessas URLs
-CSRF_TRUSTED_ORIGINS = ['*']
+CSRF_TRUSTED_ORIGINS = [
+    'https://vetsite-production.up.railway.app',
+    'http://localhost:3000', # Se estiver testando o React localmente
+    'http://127.0.0.1:3000'
+]
 
 # Configurações para garantir que o cookie circule entre as portas
 CSRF_COOKIE_HTTPONLY = False  # Para o React conseguir ler o token
