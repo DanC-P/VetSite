@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Navbar, Footer, Toast } from "../components";
 import { useConfig } from "../context";
-// ✅ Removi Linkedin e Github daqui:
 import { Mail, Code, Palette, Zap } from "lucide-react";
 
 // --- ÍCONES SVG MANUAIS (Para evitar erro de build) ---
@@ -162,7 +161,7 @@ const AboutUs = () => {
                 className="flex items-center gap-2 bg-white border p-3 rounded-lg hover:text-teal-600 transition-all"
               >
                 <LinkedinIcon size={20} />{" "}
-                <span className="font-semibold text-sm">LinkedIn</span>
+                <span className="font-semibold text-sm">Linkedin</span>
               </a>
               <a
                 href="https://github.com/..."
