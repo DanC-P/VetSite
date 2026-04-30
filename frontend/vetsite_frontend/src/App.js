@@ -12,9 +12,10 @@ import { useConfig } from "./context/ConfigContext";
  * ou para envolver a aplicação com Provedores de Contexto (Context Providers).
  */
 function App() {
-  const { config } = useConfig();
+  const { config, loading } = useConfig();
 
-  const title = config?.title_site || "VetSite";
+  const title = loading ? "Carregando..." : config?.title_site || "VetSite";
+
   const logoUrl = config?.logo?.startsWith("http")
     ? config.logo
     : `http://127.0.0.1:8000${config?.logo}`;

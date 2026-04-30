@@ -45,15 +45,33 @@ const AboutUs = () => {
     }
   };
 
+  // Pequeno codigo para verificar se tem title ou n no site
+  const siteTitle = configuration?.title_site || "VetSite";
+
   // Fragmento de texto para organização do código
   const introducaoPessoal = (
     <div className="text-lg text-gray-600 max-w-3xl mx-auto space-y-4 leading-relaxed">
       <p>
-        Sou um desenvolvedor fullstack em início de carreira... (seu texto
-        atual)
+        Sou um desenvolvedor fullstack em início de carreira, movido pela
+        curiosidade e pela paixão de transformar linhas de código em soluções
+        reais. O <strong>{siteTitle}</strong> é um marco fundamental na minha
+        jornada: ele representa o meu primeiro projeto completo, desenvolvido de
+        ponta a ponta.
+      </p>
+      <p className="text-base">
+        Durante este desenvolvimento, enfrentei e superei os desafios reais da
+        integração entre um backend robusto em <strong>Django</strong> e um
+        frontend dinâmico em <strong>React</strong>. Mais do que dominar
+        ferramentas como a autenticação de sessões ou a estruturação de APIs,
+        este projeto me ensinou a importância da persistência e da resolução
+        prática de problemas — habilidades que considero essenciais para
+        qualquer programador.
       </p>
       <p className="text-base italic bg-teal-50 border-l-4 border-teal-500 p-4 rounded-r-lg shadow-sm">
-        "Concluir este projeto não é apenas o fim de um ciclo..."
+        "Concluir este projeto não é apenas o fim de um ciclo de
+        desenvolvimento, mas o início da minha trajetória profissional, provando
+        que estou pronto para aprender, adaptar e entregar valor com
+        tecnologia."
       </p>
     </div>
   );

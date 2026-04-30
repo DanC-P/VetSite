@@ -1,25 +1,34 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-br">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
+    <meta name="theme-color" content="#0d9488" />
+    <!-- Cor teal-600 do seu tema -->
+
+    <!-- SEO Básico -->
+    <meta name="description" content="Sistema de gerenciamento VetSite" />
+
+    <!-- 
+      Não precisamos de <title> ou <link rel="icon"> fixos aqui 
+      porque o seu App.js (React Helmet) vai gerenciar isso dinamicamente 
+      com os dados vindos do Django.
+    -->
+
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-
-    <title>Vet Site</title>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript
+      >Você precisa habilitar o JavaScript para rodar este aplicativo.</noscript
+    >
+
+    <!-- ESSA LINHA É A MAIS IMPORTANTE: Não apague nem mude o ID -->
     <div id="root"></div>
-    <script>
-      src = "script.js";
-    </script>
+
+    <!-- 
+      O React injetará os scripts automaticamente aqui durante o 'npm start' ou 'build'.
+      Removi aquele script.js com erro de sintaxe. 
+    -->
   </body>
 </html>

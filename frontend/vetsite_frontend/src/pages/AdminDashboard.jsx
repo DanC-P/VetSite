@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { SidebarAdmin, AdminHeader } from "../components";
 import { Outlet } from "react-router-dom";
 import { useConfig } from "../context";
+import { List } from "lucide-react";
 
 /**
  * UTILS: getCookie
@@ -33,7 +34,7 @@ function getCookie(name) {
  */
 const AdminDashboard = () => {
   const [csrfToken, setCsrfToken] = useState("");
-
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   // Consumindo o contexto global que criamos
   const { config, loading } = useConfig();
 
@@ -52,12 +53,30 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex-1 flex flex-col min-w-0 h-screen">
       {/* SIDEBAR: Agora recebe a config vinda diretamente do Contexto */}
-      <SidebarAdmin config={config} />
+      <SidebarAdmin
+        config={config}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
 
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* HEADER: Também pode usar o contexto se necessário para exibir nome/logo */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        {/* HEADER: Adicionamos um botão para abrir a sidebar no mobile */}
+        <header className="bg-white border-b border-gray-100 p-4 flex items-center justify-between md:hidden">
+          <div className="flex items-center">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+            >
+              <List size={24} />
+            </button>
+            <span className="ml-4 font-bold text-gray-800">
+              {config?.title_site}
+            </span>
+          </div>
+        </header>
+
         <AdminHeader config={config} />
 
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
@@ -71,6 +90,14 @@ const AdminDashboard = () => {
           </div>
         </main>
       </div>
+
+      {/* OVERLAY: Escurece o fundo quando a sidebar abre no mobile */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[35] md:hidden backdrop-blur-sm"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 };

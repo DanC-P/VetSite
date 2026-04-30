@@ -10,113 +10,95 @@ import { Search } from "lucide-react"; // Importação direta para melhor perfor
  */
 const FiltersWrapper = ({ filters, updateFilter, categories }) => {
   return (
-    <section className="flex flex-wrap items-center gap-6 px-8 py-6 bg-white border-b border-gray-200 sticky top-0 z-10 w-full">
-      {/* 1. CAMPO DE BUSCA TEXTUAL */}
-      <div className="relative flex-grow max-w-md">
-        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-          <Search size={18} />
-        </span>
-        <input
-          type="text"
-          value={filters.search}
-          onChange={(e) => updateFilter("search", e.target.value)}
-          id="search-input"
-          className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg 
-                     focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none 
-                     transition-all placeholder:text-gray-400"
-          placeholder="O que seu pet precisa hoje?"
-        />
-      </div>
-
-      {/* 2. FILTRAGEM POR CATEGORIA */}
-      <div id="category-filters" className="flex items-center gap-2">
-        <label
-          htmlFor="category-select"
-          className="text-xs font-bold text-gray-400 uppercase tracking-tighter"
-        >
-          Categoria
-        </label>
-        <select
-          id="category-select"
-          value={filters.category}
-          onChange={(e) => updateFilter("category", e.target.value)}
-          className="bg-white border border-gray-200 text-gray-600 text-xs rounded-lg 
-                     focus:ring-teal-500 focus:border-teal-500 block p-2 transition-all 
-                     outline-none hover:border-teal-500 cursor-pointer"
-        >
-          <option value="Todos">Todas as Categorias</option>
-          {/* Mapeamento dinâmico das categorias vindas do Backend (Django) */}
-          {categories
-            .filter((cat) => cat.name)
-            .map((cat) => (
-              <option key={cat.id} value={cat.name}>
-                {cat.name}
-              </option>
-            ))}
-        </select>
-      </div>
-
-      {/* 3. ORDENAÇÃO E TOGGLES (LADO DIREITO) */}
-      <div className="flex flex-wrap items-center gap-6 ml-auto">
-        {/* Ordenação por preço */}
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-bold text-gray-400 uppercase">
-            Ordenar
-          </span>
-          <select
-            value={filters.sortBy}
-            onChange={(e) => updateFilter("sortBy", e.target.value)}
-            className="bg-gray-50 border border-gray-200 text-gray-600 text-xs rounded-lg p-2 outline-none focus:border-teal-500"
-          >
-            <option value="default">Destaques</option>
-            <option value="lowPrice">Menor Preço</option>
-            <option value="highPrice">Maior Preço</option>
-          </select>
-        </div>
-
-        {/* Toggle: Em Estoque */}
-        <div className="flex items-center gap-3 border-l border-gray-200 pl-6">
-          <label className="relative inline-flex items-center cursor-pointer">
+    <section className="md:sticky z-20 w-full bg-white border-b border-gray-200 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 py-4 md:px-8">
+        {/* Container Principal: No mobile vira Grid, no Desktop volta a ser Flex */}
+        <div className="grid grid-cols-2 md:flex md:flex-wrap items-center gap-4 md:gap-6">
+          {/* 1. CAMPO DE BUSCA: Ocupa a linha toda no mobile (col-span-2) */}
+          <div className="relative col-span-2 md:flex-grow md:max-w-md">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+              <Search size={16} />
+            </span>
             <input
-              type="checkbox"
-              checked={filters.onStock}
-              onChange={(e) => updateFilter("onStock", e.target.checked)}
-              className="sr-only peer"
+              type="text"
+              value={filters.search}
+              onChange={(e) => updateFilter("search", e.target.value)}
+              className="w-full pl-9 pr-4 py-2 text-sm border border-gray-100 bg-gray-50 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all"
+              placeholder="Buscar..."
             />
-            {/* O design do toggle é feito puramente com Tailwind usando pseudo-elementos */}
-            <div
-              className="w-10 h-5 bg-gray-200 rounded-full peer 
-                            peer-checked:bg-teal-500 transition-colors 
-                            after:content-[''] after:absolute after:top-[2px] 
-                            after:left-[2px] after:bg-white after:rounded-full 
-                            after:h-4 after:w-4 after:transition-all 
-                            peer-checked:after:translate-x-5"
-            ></div>
-          </label>
-          <span className="text-xs font-semibold text-gray-600">
-            Em Estoque
-          </span>
-        </div>
+          </div>
 
-        {/* Toggle: Destaques */}
-        <div className="flex items-center gap-3 border-l border-gray-200 pl-6">
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={filters.onlyFeatured}
-              onChange={(e) => updateFilter("onlyFeatured", e.target.checked)}
-              className="sr-only peer"
-            />
-            <div
-              className="w-10 h-5 bg-gray-200 rounded-full peer 
-                            peer-checked:bg-teal-500 transition-colors 
-                            after:content-[''] after:absolute after:top-[2px] 
-                            after:left-[2px] after:bg-white after:rounded-full 
-                            after:h-4 after:w-4 after:transition-all 
-                            peer-checked:after:translate-x-5"
-            ></div>
-          </label>
-          <span className="text-xs font-semibold text-gray-600">Destaques</span>
+          {/* 2. CATEGORIA: 1 Coluna no mobile */}
+          <div className="flex flex-col md:flex-row md:items-center gap-1.5">
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">
+              Categoria
+            </label>
+            <select
+              value={filters.category}
+              onChange={(e) => updateFilter("category", e.target.value)}
+              className="bg-white border border-gray-200 text-gray-700 text-xs rounded-lg p-2 outline-none focus:border-teal-500 w-full"
+            >
+              <option value="Todos">Todas</option>
+              {categories.map((cat, idx) => (
+                <option key={idx} value={cat.name || cat}>
+                  {cat.name || cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* 3. ORDENAR: 1 Coluna no mobile */}
+          <div className="flex flex-col md:flex-row md:items-center gap-1.5">
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">
+              Ordenar
+            </label>
+            <select
+              value={filters.sortBy}
+              onChange={(e) => updateFilter("sortBy", e.target.value)}
+              className="bg-white border border-gray-200 text-gray-700 text-xs rounded-lg p-2 outline-none focus:border-teal-500 w-full"
+            >
+              <option value="default">Destaques</option>
+              <option value="lowPrice">Menor Preço</option>
+              <option value="highPrice">Maior Preço</option>
+            </select>
+          </div>
+
+          {/* 4. TOGGLES: Ocupam a linha toda no mobile para não esmagar */}
+          <div className="col-span-2 flex items-center justify-between md:justify-start gap-4 pt-2 md:pt-0 md:ml-auto md:border-l md:pl-6 border-gray-100 border-t md:border-t-0">
+            {/* Toggle Em Estoque */}
+            <div className="flex items-center gap-2">
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.onStock}
+                  onChange={(e) => updateFilter("onStock", e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-8 h-4 bg-gray-200 rounded-full peer peer-checked:bg-teal-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+              </label>
+              <span className="text-[11px] font-semibold text-gray-500 uppercase">
+                Estoque
+              </span>
+            </div>
+
+            {/* Toggle Destaques */}
+            <div className="flex items-center gap-2">
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.onlyFeatured}
+                  onChange={(e) =>
+                    updateFilter("onlyFeatured", e.target.checked)
+                  }
+                  className="sr-only peer"
+                />
+                <div className="w-8 h-4 bg-gray-200 rounded-full peer peer-checked:bg-teal-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+              </label>
+              <span className="text-[11px] font-semibold text-gray-500 uppercase">
+                Destaques
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </section>

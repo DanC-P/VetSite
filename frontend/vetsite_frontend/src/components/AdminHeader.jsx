@@ -44,7 +44,7 @@ const AdminHeader = () => {
 
   // --- JSX DO COMPONENTE ---
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-40 w-full">
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-10 w-full hidden md:block">
       <div className="px-8 py-4 flex items-center justify-between">
         {/* LADO ESQUERDO: Identificação da Página */}
         <div className="flex flex-col">
