@@ -1,8 +1,8 @@
 # Estágio 1: Build do React
-FROM node:18 AS frontend-build
+FROM node:20 AS frontend-build
 WORKDIR /app/frontend
 COPY frontend/vetsite_frontend/package*.json ./vetsite_frontend/
-RUN npm install --prefix vetsite_frontend
+RUN npm install --prefix vetsite_frontend --legacy-peer-deps
 COPY frontend/vetsite_frontend/ ./vetsite_frontend/
 RUN npm run build --prefix vetsite_frontend
 
