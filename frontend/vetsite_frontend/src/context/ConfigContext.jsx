@@ -16,26 +16,43 @@ export const ConfigProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Chamada de API dos dados de Config
-    console.log("Iniciando busca de configurações...");
-    fetch("/api/configuration/")
-      // Transforma o conjunto de dados em json
-      .then((res) => {
-        console.log("Resposta do servidor:", res.status);
-        return res.json();
-      })
-      // Pega a data e "seta" no estado de Config e seta o Loading para false
-      .then((data) => {
-        console.log("Dados recebidos:", data);
-        const configData = Array.isArray(data) ? data[0] : data;
-        setConfig(configData);
-        setLoading(false);
-      })
-      // Caso o dado pego seja um error, alerta via console.
-      .catch((err) => {
-        console.error("Erro ao carregar configurações:", err);
-        setLoading(false);
-      });
+    const loadConfig = () => {
+      console.log("Buscando atualizações de configuração...");
+
+      fetch("/api/configuration/")
+        .then((res) => {
+          if (!res.ok) throw new Error("Erro na resposta do servidor");
+          return res.json();
+        })
+        .then((data) => {
+          const configData = Array.isArray(data) ? data[0] : data;
+
+          // SUTILEZA: Só atualiza o estado se houver mudança real nos dados
+          setConfig((prevConfig) => {
+            if (JSON.stringify(prevConfig) !== JSON.stringify(configData)) {
+              console.log("Configurações atualizadas dinamicamente!");
+              return configData;
+            }
+            return prevConfig;
+          });
+        })
+        .catch((err) => {
+          console.error("Erro ao carregar configurações:", err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    };
+
+    // 1. Execução imediata ao montar o Contexto
+    loadConfig();
+
+    // 2. Define o intervalo de verificação (ex: a cada 60 segundos)
+    // Configurações mudam com menos frequência que produtos, então 1 minuto é um bom tempo.
+    const interval = setInterval(loadConfig, 60000);
+
+    // 3. Limpeza ao desmontar o Provider
+    return () => clearInterval(interval);
   }, []);
 
   return (

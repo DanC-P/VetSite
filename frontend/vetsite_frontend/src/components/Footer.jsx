@@ -11,17 +11,24 @@ import {
   ShieldCheck,
   Lock,
   CreditCard,
+  PawPrint, // Importado para manter consistência com o Navbar
 } from "lucide-react";
 
-/**
- * COMPONENTE: Footer
- * Objetivo: Fornecer informações de contato, links de navegação e selos de segurança.
- * Estratégia de Portfólio: Utilizamos links de âncora (#) para seções existentes na Home,
- * garantindo que o usuário não caia em páginas de erro (404) enquanto o projeto cresce.
- */
 const Footer = ({ config }) => {
-  // Formatação do link do WhatsApp para ação direta
-  const whatsappUrl = `https://api.whatsapp.com/send?phone=${config.whatsapp_number?.replace(/\D/g, "")}&text=Olá! Vim pelo VetSite e gostaria de tirar uma dúvida.`;
+  // --- LÓGICA DE BRANDING DINÂMICO (Igual ao Navbar) ---
+  const title = config.title_site || "VetSite";
+  const half = Math.floor(title.length / 2);
+  const firstHalf = title.slice(0, half);
+  const secondHalf = title.slice(half);
+
+  const logoUrl =
+    config.logo &&
+    (config.logo.startsWith("http")
+      ? config.logo
+      : `http://127.0.0.1:8000${config.logo}`);
+
+  // Formatação do link do WhatsApp
+  const whatsappUrl = `https://api.whatsapp.com/send?phone=${config.whatsapp_number?.replace(/\D/g, "")}&text=Olá! Vim pelo ${title} e gostaria de tirar uma dúvida.`;
 
   return (
     <footer id="contato" className="bg-gray-900 text-gray-300">
@@ -30,31 +37,52 @@ const Footer = ({ config }) => {
           {/* COLUNA 1: Identidade e Redes Sociais */}
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center shadow-lg">
-                <svg
-                  viewBox="0 0 24 24"
-                  className="w-6 h-6 text-white"
-                  fill="currentColor"
-                >
-                  <circle cx="8" cy="8" r="2" /> <circle cx="16" cy="8" r="2" />
-                  <circle cx="6" cy="13" r="1.5" />{" "}
-                  <circle cx="18" cy="13" r="1.5" />
-                  <ellipse cx="12" cy="15" rx="3" ry="4" />
-                </svg>
+              {/* LOGO DINÂMICA */}
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center shadow-lg overflow-hidden border-2 border-gray-800">
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt="Logo"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <PawPrint
+                    size={20}
+                    className="text-white"
+                    fill="currentColor"
+                  />
+                )}
               </div>
+
+              {/* TÍTULO DINÂMICO */}
               <span className="text-xl font-extrabold text-white tracking-tighter">
-                Vet<span className="text-teal-400">Site</span>
+                {firstHalf}
+                <span className="text-teal-400">{secondHalf}</span>
               </span>
             </div>
+
             <p className="text-sm text-gray-400 mb-6 leading-relaxed">
-              Sua pet shop de confiança em Soledade. Qualidade e carinho para
-              quem você mais ama desde 2014.
+              {config.description_site ||
+                `Sua pet shop de confiança em Soledade. Qualidade e carinho para quem você mais ama desde 2014.`}
             </p>
+
             <div className="flex gap-3">
               {[
-                { Icon: Instagram, link: "https://instagram.com" },
-                { Icon: Facebook, link: "https://facebook.com" },
-                { Icon: Youtube, link: "https://youtube.com" },
+                {
+                  Icon: Instagram,
+                  link: config.instagram_url || "https://instagram.com",
+                },
+                {
+                  Icon: Facebook,
+                  link: config.facebook_url || "https://facebook.com",
+                },
+                {
+                  Icon: Youtube,
+                  link: config.youtube_url || "https://youtube.com",
+                },
               ].map(({ Icon, link }, index) => (
                 <a
                   key={index}
@@ -69,7 +97,7 @@ const Footer = ({ config }) => {
             </div>
           </div>
 
-          {/* COLUNA 2: Navegação Rápida (Resolvendo os campos brancos) */}
+          {/* COLUNA 2: Navegação Rápida */}
           <div>
             <h3 className="font-bold text-white mb-4 uppercase text-xs tracking-widest">
               Navegação
@@ -110,7 +138,7 @@ const Footer = ({ config }) => {
             </ul>
           </div>
 
-          {/* COLUNA 3: Institucional/Ajuda */}
+          {/* COLUNA 3: Institucional */}
           <div>
             <h3 className="font-bold text-white mb-4 uppercase text-xs tracking-widest">
               Institucional
@@ -194,8 +222,8 @@ const Footer = ({ config }) => {
                 </span>
               </div>
             </div>
-            <p className="text-[11px] text-gray-600 font-medium">
-              © {new Date().getFullYear()} VETSITE | DESENVOLVIDO DANIEL S.
+            <p className="text-[11px] text-gray-600 font-medium uppercase">
+              © {new Date().getFullYear()} {title} | DESENVOLVIDO POR DANIEL S.
               COSTA
             </p>
           </div>

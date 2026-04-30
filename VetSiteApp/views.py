@@ -1,12 +1,11 @@
 from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Category, Product, Banner, ConfigurationSite
+from .models import Category, Product, ConfigurationSite
 from django.db.models import Count, Sum
 from .serializers import (
     CategorySerializer, 
-    ProductSerializer, 
-    BannerSerializer, 
+    ProductSerializer,  
     ConfigurationSiteSerializer
 )
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
@@ -14,9 +13,13 @@ from django.utils.decorators import method_decorator
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 
 # --- ENVIO DE EMAIL ---
-
+# NOTA DE SEGURANÇA: Devido às políticas de SPF/DKIM dos provedores de e-mail, 
+# não é possível usar o e-mail do cliente no campo 'From'. 
+# O envio é feito via e-mail do proprietário, e o e-mail do cliente 
+# é inserido no campo 'reply_to' para permitir a resposta direta.
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def send_contact(request):
@@ -27,19 +30,24 @@ def send_contact(request):
             status=400
         )
     
+    # Captura os dados do input
     user_email = request.data.get('email')
     user_name = request.data.get('name')
     user_subject = request.data.get('subject')
     user_message = request.data.get('message')
     
+    # Montamos um corpo de e-mail mais
+    full_message = f"Nome: {user_name}\nE-mail do Cliente: {user_email}\n\nMensagem:\n{user_message}"
+
     try:
-        send_mail(
-            subject= user_subject,
-            message=user_message,
-            from_email=user_email,
-            recipient_list=[config.email_contact],
-            fail_silently=False,
+        email = EmailMessage(
+            subject=f"[CONTATO VETSITE] - {user_subject}",
+            body=full_message,
+            from_email=None, # O Django usará o DEFAULT_FROM_EMAIL do seu settings.py
+            to=[config.email_contact],
+            reply_to=[user_email], # É AQUI que o e-mail do cliente é usado!
         )
+        email.send(fail_silently=False)
         return Response({"success": "E-mail enviado com sucesso."}, status=200)
     
     except Exception as e:
@@ -73,10 +81,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-class BannerViewSet(viewsets.ModelViewSet):
-    queryset = Banner.objects.all()
-    serializer_class = BannerSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
 
 class ConfigurationSiteViewSet(viewsets.ModelViewSet):
     queryset = ConfigurationSite.objects.all()

@@ -50,8 +50,21 @@ const Home = () => {
         const dataProducts = await resProducts.json();
         const dataCategories = await resCategories.json();
 
-        setProducts(dataProducts);
-        setCategories(dataCategories);
+        setProducts((prevProducts) => {
+          if (JSON.stringify(prevProducts) !== JSON.stringify(dataProducts)) {
+            return dataProducts;
+          }
+          return prevProducts;
+        });
+
+        setCategories((prevCategories) => {
+          if (
+            JSON.stringify(prevCategories) !== JSON.stringify(dataCategories)
+          ) {
+            return dataCategories;
+          }
+          return prevCategories;
+        });
       } catch (err) {
         triggerAlert("Erro ao carregar vitrine.", "error");
       } finally {
@@ -59,7 +72,14 @@ const Home = () => {
       }
     };
 
+    // 1. Carrega os dados imediatamente ao abrir a página
     loadHomeData();
+
+    // 2. Configura uma verificação automática a cada 30 segundos (30000ms)
+    const interval = setInterval(loadHomeData, 30000);
+
+    // 3. LIMPEZA (Crucial): Para o relógio se o usuário sair da página
+    return () => clearInterval(interval);
   }, []);
 
   // Produto em destaque para o Hero

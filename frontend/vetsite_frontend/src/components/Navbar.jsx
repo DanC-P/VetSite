@@ -28,7 +28,7 @@ const Navbar = ({ config }) => {
   const navLinks = [
     { name: "Início", href: "/" },
     { name: "Produtos", href: "/produtos" },
-    { name: "Sobre Nós", href: "/sobre" },
+    { name: "Sobre Mim", href: "/sobre" },
     { name: "Contato", href: "/contato" },
   ];
 

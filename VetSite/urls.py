@@ -5,6 +5,7 @@ from django.conf import settings
 from django.views.generic import TemplateView
 from VetSiteApp.views import send_contact
 
+# Conjunto de URLS para acesso ao dados do Django
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('VetSiteApp.urls')),

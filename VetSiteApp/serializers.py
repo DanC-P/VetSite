@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Product, Banner, ConfigurationSite
+from .models import Category, Product, ConfigurationSite
 
 class CategorySerializer(serializers.ModelSerializer):
 
@@ -35,15 +35,7 @@ class ProductSerializer(serializers.ModelSerializer):
                   'is_featured']
 
 
-class BannerSerializer(serializers.ModelSerializer):
 
-    class Meta:
-        model = Banner
-        fields = ['id',
-                  'image',
-                  'title',
-                  'link',
-                  'is_active']
 
 class ConfigurationSiteSerializer(serializers.ModelSerializer):
 

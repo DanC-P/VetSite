@@ -2,8 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import SimpleRouter
 from .views import (
     ProductViewSet, 
-    CategoryViewSet, 
-    BannerViewSet, 
+    CategoryViewSet,  
     ConfigurationSiteViewSet,
     GetCSRFToken
 )
@@ -12,7 +11,6 @@ from .views import (
 router = SimpleRouter()
 router.register(r'products', ProductViewSet, basename='product')
 router.register(r'categories', CategoryViewSet, basename='category')
-router.register(r'banners', BannerViewSet, basename='banner')
 router.register(r'configuration', ConfigurationSiteViewSet, basename='configuration')
 
 urlpatterns = [

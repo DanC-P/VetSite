@@ -1,5 +1,6 @@
 from django.db import models
 
+# Tabela de Produtos
 class Product(models.Model):
     title = models.CharField(max_length=300)
     slug = models.SlugField(unique=True, null=True, blank=True)
@@ -17,6 +18,7 @@ class Product(models.Model):
     def __str__(self):
         return self.title
     
+# Tabela de Categorias    
 class Category (models.Model):
     name = models.CharField(max_length=300)
     slug = models.SlugField(unique=True, null=True, blank=True)
@@ -25,15 +27,8 @@ class Category (models.Model):
     def __str__(self):
         return self.name
 
-class Banner (models.Model):
-    image = models.ImageField(upload_to='banners/')
-    title = models.CharField(max_length=300)
-    link = models.URLField(max_length=200, null=True, blank=True)
-    is_active = models.BooleanField(default=True)
 
-    def __str__(self):
-        return self.title
-
+# Tabela de Configuração do Site
 class ConfigurationSite(models.Model):
     title_site = models.CharField(max_length=300, null=True, blank=True)
     logo = models.ImageField(upload_to='config/', null=True, blank=True)
