@@ -22,3 +22,4 @@ export { default as ResultsInfo } from "./ResultsInfo";
 export { default as ProductGridCatalogue } from "./ProductGridCatalogue";
 export { default as ProductVisualizer } from "./ProductVisualizer";
 export { default as Toast } from "./Toast";
+export { default as PortfolioWarning } from "./PortfolioWarning";
