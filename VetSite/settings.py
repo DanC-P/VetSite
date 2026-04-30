@@ -9,7 +9,7 @@ SECRET_KEY = 'django-insecure-mbgsr)4qiqbjn)h$*tkwwn9ezdac2+@6m13(c^^r2+j3v@llbt
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
+ALLOWED_HOSTS = ['*']
 
 # --- APLICAÇÕES ---
 INSTALLED_APPS = [
@@ -104,18 +104,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_CREDENTIALS = True
 
 # O Django autoriza o React (3000) a enviar pedidos
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+CORS_ALLOWED_ORIGINS = ['*']
 
 # O Django confia nas requisições vindas dessas URLs
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-]
+CSRF_TRUSTED_ORIGINS = ['*']
 
 # Configurações para garantir que o cookie circule entre as portas
 CSRF_COOKIE_HTTPONLY = False  # Para o React conseguir ler o token
