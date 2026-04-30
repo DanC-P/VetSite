@@ -19,7 +19,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar o projeto todo e os arquivos buildados do React
 COPY . .
-COPY --from(frontend-build) /app/frontend/vetsite_frontend/build /app/frontend/vetsite_frontend/build
+COPY --from=frontend-build /app/frontend/vetsite_frontend/build /app/frontend/vetsite_frontend/build
 
 # Comando de inicialização
 CMD python manage.py migrate && \
