@@ -22,4 +22,8 @@ COPY . .
 COPY --from=frontend-build /app/frontend/vetsite_frontend/build /app/frontend/vetsite_frontend/build
 
 # Comando de inicialização
-CMD gunicorn VetSite.wsgi:application --bind 0.0.0.0:${PORT}
+# Dar permissão de execução ao script
+RUN chmod +x /app/start.sh
+
+# Chamar o script
+CMD ["/app/start.sh"]
