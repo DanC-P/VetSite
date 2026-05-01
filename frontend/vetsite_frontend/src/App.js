@@ -16,9 +16,13 @@ function App() {
 
   const title = loading ? "Carregando..." : config?.title_site || "VetSite";
 
-  const logoUrl = config?.logo?.startsWith("http")
-    ? config.logo
-    : `http://127.0.0.1:8000${config?.logo}`;
+  const API_URL = process.env.REACT_APP_API_URL || "";
+
+  const logoUrl = config.logo
+    ? config.logo.startsWith("http")
+      ? config.logo
+      : `${API_URL}${config.logo}`
+    : null;
 
   return (
     // A classe "App" pode ser usada para aplicar estilos globais de fonte ou reset de CSS.

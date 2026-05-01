@@ -38,6 +38,8 @@ const Hero = ({ featuredProduct, config }) => {
     }
   };
 
+  const API_URL = process.env.REACT_APP_API_URL || "";
+
   return (
     <section
       id="inicio"
@@ -119,7 +121,7 @@ const Hero = ({ featuredProduct, config }) => {
                   src={
                     featuredProduct.image.startsWith("http")
                       ? featuredProduct.image
-                      : `http://127.0.0.1:8000${featuredProduct.image}`
+                      : `${API_URL}${featuredProduct.logo}`
                   }
                   alt={featuredProduct.title}
                   className="w-full h-[420px] object-contain rounded-2xl"

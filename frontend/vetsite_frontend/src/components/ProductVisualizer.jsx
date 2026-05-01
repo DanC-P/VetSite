@@ -32,6 +32,8 @@ const ProductVisualizer = ({ product, onClose, config }) => {
       currency: "BRL",
     });
 
+  const API_URL = process.env.REACT_APP_API_URL || "";
+
   return (
     // Backdrop (Fundo escurecido com desfoque)
     <div
@@ -54,9 +56,7 @@ const ProductVisualizer = ({ product, onClose, config }) => {
         {/* LADO ESQUERDO: GALERIA/IMAGEM */}
         <div className="w-full md:w-1/2 bg-gray-50 flex items-center justify-center p-8 border-b md:border-b-0 md:border-r border-gray-100">
           <img
-            src={
-              image.startsWith("http") ? image : `http://127.0.0.1:8000${image}`
-            }
+            src={image.startsWith("http") ? image : `${API_URL}${image}`}
             alt={title}
             className="max-h-[400px] object-contain mix-blend-multiply hover:scale-105 transition-transform duration-500"
           />

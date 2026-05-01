@@ -11,6 +11,8 @@ import { MessageCircle, AlertTriangle, X } from "lucide-react";
 const ProductCard = ({ product, onOpen, config }) => {
   const [showConfigAlert, setShowConfigAlert] = useState(false);
 
+  const API_URL = process.env.REACT_APP_API_URL || "";
+
   // Early return: se o produto não existir ou estiver inativo, não renderiza nada
   if (!product || !product.is_active) return null;
 
@@ -68,11 +70,7 @@ const ProductCard = ({ product, onOpen, config }) => {
         <div className="relative aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
           {image ? (
             <img
-              src={
-                image.startsWith("http")
-                  ? image
-                  : `http://127.0.0.1:8000${image}`
-              }
+              src={image.startsWith("http") ? image : `${API_URL}${image}`}
               alt={title}
               className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
               onError={(e) => {
