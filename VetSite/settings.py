@@ -87,7 +87,7 @@ USE_I18N = True
 USE_TZ = True
 
 # --- ARQUIVOS ESTÁTICOS ---
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     # Caminho exato onde o React joga o JS e CSS no build
     os.path.join(BASE_DIR, 'frontend', 'vetsite_frontend', 'build', 'static'),
