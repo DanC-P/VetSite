@@ -68,7 +68,7 @@ const Youtube = ({ size = 24, ...props }) => (
 
 const Footer = ({ config }) => {
   // --- LÓGICA DE BRANDING DINÂMICO (Igual ao Navbar) ---
-  const title = config.title_site || "VetSite";
+  const title = config?.title_site || "VetSite";
   const half = Math.floor(title.length / 2);
   const firstHalf = title.slice(0, half);
   const secondHalf = title.slice(half);

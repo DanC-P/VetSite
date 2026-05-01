@@ -13,7 +13,7 @@ const Navbar = ({ config }) => {
 
   // --- LÓGICA DE BRANDING DINÂMICO ---
   // Dividimos o título para aplicar o estilo "VetSite" (Metade preto, metade teal)
-  const title = config.title_site || "VetSite";
+  const title = config?.title_site || "VetSite";
   const half = Math.floor(title.length / 2);
   const firstHalf = title.slice(0, half);
   const secondHalf = title.slice(half);
