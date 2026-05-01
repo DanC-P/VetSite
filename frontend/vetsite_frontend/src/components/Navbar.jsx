@@ -18,11 +18,11 @@ const Navbar = ({ config }) => {
   const firstHalf = title.slice(0, half);
   const secondHalf = title.slice(half);
 
-  const logoUrl =
-    config.logo &&
-    (config.logo.startsWith("http")
+  const logoUrl = config.logo
+    ? config.logo.startsWith("http")
       ? config.logo
-      : `http://127.0.0.1:8000${config.logo}`);
+      : `http://127.0.0.1:8000${config.logo}`
+    : null;
 
   // --- CONFIGURAÇÃO DE ROTAS ---
   const navLinks = [
