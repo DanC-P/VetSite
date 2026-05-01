@@ -22,4 +22,4 @@ COPY . .
 COPY --from=frontend-build /app/frontend/vetsite_frontend/build /app/frontend/vetsite_frontend/build
 
 # Comando de inicialização
-CMD gunicorn VetSite.wsgi:application --bind 0.0.0.0:$PORT
+CMD gunicorn VetSite.wsgi:application --bind 0.0.0.0:${PORT}
