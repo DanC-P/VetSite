@@ -14,6 +14,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 from django.core.mail import send_mail
 from django.core.mail import EmailMessage
+import resend
 from django.conf import settings
 
 # --- ENVIO DE EMAIL ---
@@ -48,17 +49,18 @@ def send_contact(request):
 
     try:
 
-        print("EMAIL_HOST_USER:", settings.EMAIL_HOST_USER)
-        print("EMAIL_HOST_PASSWORD:", settings.EMAIL_HOST_PASSWORD)
+        resend.api_key = settings.RESEND_API_KEY
 
-        email = EmailMessage(
-            subject=f"[CONTATO VETSITE] - {user_subject}",
-            body=full_message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[config.email_contact],
-            reply_to=[user_email],
-        )
-        email.send(fail_silently=False)
+        params = {
+            "from": "onboarding@resend.dev",
+            "to": [config.email_contact],
+            "subject": f"[CONTATO VETSITE] - {user_subject}",
+            "reply_to": user_email,
+            "text": full_message,
+        }
+
+        resend.Emails.send(params)
+        
         return Response({"success": "E-mail enviado com sucesso."}, status=200)
     
     except Exception as e:
