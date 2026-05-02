@@ -234,7 +234,7 @@ const Footer = ({ config }) => {
               <li className="flex items-center gap-2">
                 <Mail size={16} className="text-teal-400" />
                 <span className="truncate">
-                  {config.email_contact || "contato@vetsite.com"}
+                  {config?.email_contact || "contato@vetsite.com"}
                 </span>
               </li>
               <li className="flex items-start gap-2">
