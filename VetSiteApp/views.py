@@ -66,7 +66,7 @@ def send_contact(request):
     except Exception as e:
         print("ERRO RESEND:", repr(e))
 
-    return Response({
+        return Response({
         "error": str(e),
         "type": type(e).__name__
     }, status=500)
