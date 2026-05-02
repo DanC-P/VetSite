@@ -156,7 +156,7 @@ const AboutUs = () => {
             {/* Redes Sociais */}
             <div className="flex justify-center gap-6 mb-16">
               <a
-                href="https://linkedin.com/..."
+                href="https://linkedin.com/in/daniel-costa-0525482aa/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 bg-white border p-3 rounded-lg hover:text-teal-600 transition-all"
@@ -165,7 +165,7 @@ const AboutUs = () => {
                 <span className="font-semibold text-sm">Linkedin</span>
               </a>
               <a
-                href="https://github.com/..."
+                href="https://github.com/DanC-P"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 bg-white border p-3 rounded-lg hover:text-teal-600 transition-all"
