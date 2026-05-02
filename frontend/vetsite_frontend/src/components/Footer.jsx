@@ -129,15 +129,15 @@ const Footer = ({ config }) => {
               {[
                 {
                   Icon: Instagram,
-                  link: config.instagram_url || "https://instagram.com",
+                  link: "https://instagram.com",
                 },
                 {
                   Icon: Facebook,
-                  link: config.facebook_url || "https://facebook.com",
+                  link: "https://facebook.com",
                 },
                 {
                   Icon: Youtube,
-                  link: config.youtube_url || "https://youtube.com",
+                  link: "https://youtube.com",
                 },
               ].map(({ Icon, link }, index) => (
                 <a
