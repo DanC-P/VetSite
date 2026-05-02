@@ -14,6 +14,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 from django.core.mail import send_mail
 from django.core.mail import EmailMessage
+from django.conf import settings
 
 # --- ENVIO DE EMAIL ---
 # NOTA DE SEGURANÇA: Devido às políticas de SPF/DKIM dos provedores de e-mail, 
@@ -49,9 +50,9 @@ def send_contact(request):
         email = EmailMessage(
             subject=f"[CONTATO VETSITE] - {user_subject}",
             body=full_message,
-            from_email=None, # O Django usará o DEFAULT_FROM_EMAIL do seu settings.py
+            from_email=settings.DEFAULT_FROM_EMAIL,
             to=[config.email_contact],
-            reply_to=[user_email], # É AQUI que o e-mail do cliente é usado!
+            reply_to=[user_email],
         )
         email.send(fail_silently=False)
         return Response({"success": "E-mail enviado com sucesso."}, status=200)
