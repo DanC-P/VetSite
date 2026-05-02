@@ -21,7 +21,8 @@ const ProductVisualizer = ({ product, onClose, config }) => {
   } = product;
 
   // --- LÓGICA DE WHATSAPP DINÂMICO ---
-  const phone = config?.whatsapp_number?.replace(/\D/g, "");
+  const whatsappNumber = config?.whatsapp_number || "(00) 0000-0000";
+  const phone = whatsappNumber.replace(/\D/g, "");
   const msgBase = config?.default_message || "Olá! Tenho interesse no produto:";
   const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(`${msgBase} ${title}`)}`;
 

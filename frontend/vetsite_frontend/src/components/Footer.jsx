@@ -81,8 +81,10 @@ const Footer = ({ config }) => {
       : `${API_URL}${config.logo}`
     : null;
 
+  const whatsappNumber = config?.whatsapp_number || "(00) 0000-0000";
+
   // Formatação do link do WhatsApp
-  const whatsappUrl = `https://api.whatsapp.com/send?phone=${config.whatsapp_number?.replace(/\D/g, "")}&text=Olá! Vim pelo ${title} e gostaria de tirar uma dúvida.`;
+  const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsappNumber.replace(/\D/g, "")}&text=Olá! Vim pelo ${title} e gostaria de tirar uma dúvida.`;
 
   return (
     <footer id="contato" className="bg-gray-900 text-gray-300">
