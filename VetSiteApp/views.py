@@ -64,7 +64,12 @@ def send_contact(request):
         return Response({"success": "E-mail enviado com sucesso."}, status=200)
     
     except Exception as e:
-        return Response({"error": f"Erro ao enviar e-mail: {str(e)}"}, status=500)
+        print("ERRO RESEND:", repr(e))
+
+    return Response({
+        "error": str(e),
+        "type": type(e).__name__
+    }, status=500)
 
 # --- CONFIGURAÇÃO DE CSRF ---
 @method_decorator(ensure_csrf_cookie, name='dispatch')    
