@@ -227,7 +227,7 @@ const Footer = ({ config }) => {
             <ul className="space-y-3 text-sm">
               <li className="flex items-center gap-2">
                 <Phone size={16} className="text-teal-400" />
-                <span>{config.whatsapp_number || "(00) 0000-0000"}</span>
+                <span>{config?.whatsapp_number || "(00) 0000-0000"}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Mail size={16} className="text-teal-400" />

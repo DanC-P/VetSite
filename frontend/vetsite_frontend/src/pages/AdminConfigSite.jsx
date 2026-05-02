@@ -60,9 +60,9 @@ const AdminConfigSite = () => {
         setEditingId(config.id);
         setFormData({
           title_site: config?.title_site || "",
-          whatsapp_number: config.whatsapp_number || "",
-          default_message: config.default_message || "",
-          email_contact: config.email_contact || "",
+          whatsapp_number: config?.whatsapp_number || "",
+          default_message: config?.default_message || "",
+          email_contact: config?.email_contact || "",
         });
         if (config.logo) setPreviewUrl(config.logo);
       }
