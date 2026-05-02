@@ -53,7 +53,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 h-screen">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* SIDEBAR: Agora recebe a config vinda diretamente do Contexto */}
       <SidebarAdmin
         config={config}
@@ -61,7 +61,7 @@ const AdminDashboard = () => {
         onClose={() => setIsSidebarOpen(false)}
       />
 
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* HEADER: Adicionamos um botão para abrir a sidebar no mobile */}
         <header className="bg-white border-b border-gray-100 p-4 flex items-center justify-between md:hidden">
           <div className="flex items-center">
