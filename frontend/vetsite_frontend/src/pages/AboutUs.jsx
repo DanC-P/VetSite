@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Navbar, Footer, Toast } from "../components";
 import { useConfig } from "../context";
 import { Mail, Code, Palette, Zap } from "lucide-react";
-import profileImage from "../assets/profile-daniel.jpg";
+import profileImage from "../assets/profile-daniel.jpeg";
 
 // --- ÍCONES SVG MANUAIS (Para evitar erro de build) ---
 const LinkedinIcon = (props) => (
