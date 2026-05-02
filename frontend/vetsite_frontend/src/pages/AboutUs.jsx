@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Navbar, Footer, Toast } from "../components";
 import { useConfig } from "../context";
 import { Mail, Code, Palette, Zap } from "lucide-react";
+import profileImage from "../assets/profile-daniel.jpg";
 
 // --- ÍCONES SVG MANUAIS (Para evitar erro de build) ---
 const LinkedinIcon = (props) => (
@@ -139,7 +140,7 @@ const AboutUs = () => {
             <div className="text-center mb-16">
               <div className="relative w-32 h-32 mx-auto mb-8">
                 <img
-                  src={`/media/config/WhatsApp Image 2026-01-25 at 07.09.25.jpeg`}
+                  src={profileImage}
                   alt="Daniel Costa"
                   className="w-full h-full rounded-full object-cover shadow-2xl border-4 border-white ring-4 ring-teal-100 hover:scale-105 transition-transform"
                 />
