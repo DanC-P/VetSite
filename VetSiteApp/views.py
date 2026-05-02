@@ -25,6 +25,7 @@ from django.core.mail import EmailMessage
 def send_contact(request):
     config = ConfigurationSite.objects.first()
 
+    
     if not config or not config.email_contact:
         return Response({"error": "O e-mail de destino não foi configurado pelo administrador."}, 
             status=400
@@ -35,6 +36,11 @@ def send_contact(request):
     user_name = request.data.get('name')
     user_subject = request.data.get('subject')
     user_message = request.data.get('message')
+    
+    if not all([user_email, user_name, user_subject, user_message]):
+        return Response({"error": "Todos os campos são obrigatórios."}, 
+            status=400
+    )
     
     # Montamos um corpo de e-mail mais
     full_message = f"Nome: {user_name}\nE-mail do Cliente: {user_email}\n\nMensagem:\n{user_message}"

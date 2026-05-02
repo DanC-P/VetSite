@@ -12,3 +12,6 @@ frontend/node_modules/
 
 # Outros
 .DS_Store
+
+# Segurança de email
+.env
