@@ -121,8 +121,8 @@ const Footer = ({ config }) => {
             </div>
 
             <p className="text-sm text-gray-400 mb-6 leading-relaxed">
-              {config.description_site ||
-                `Sua pet shop de confiança em Soledade. Qualidade e carinho para quem você mais ama desde 2014.`}
+              Sua pet shop de confiança em Soledade. Qualidade e carinho para
+              quem você mais ama desde 2014.
             </p>
 
             <div className="flex gap-3">
