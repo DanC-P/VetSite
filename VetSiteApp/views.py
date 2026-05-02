@@ -26,36 +26,60 @@ from django.conf import settings
 @permission_classes([AllowAny])
 def send_contact(request):
 
-    try:
+    config = ConfigurationSite.objects.first()
 
-        print("INICIOU VIEW")
+    if not config or not config.email_contact:
+        return Response(
+            {"error": "O e-mail de destino não foi configurado."},
+            status=400
+        )
+
+    user_email = request.data.get('email')
+    user_name = request.data.get('name')
+    user_subject = request.data.get('subject')
+    user_message = request.data.get('message')
+
+    if not all([user_email, user_name, user_subject, user_message]):
+        return Response(
+            {"error": "Todos os campos são obrigatórios."},
+            status=400
+        )
+
+    full_message = (
+        f"Nome: {user_name}\n"
+        f"E-mail do Cliente: {user_email}\n\n"
+        f"Mensagem:\n{user_message}"
+    )
+
+    try:
 
         resend.api_key = settings.RESEND_API_KEY
 
-        print("API KEY:", bool(settings.RESEND_API_KEY))
-
-        response = resend.Emails.send({
+        params = {
             "from": "onboarding@resend.dev",
-            "to": ["danielsantoscosta16@gmail.com"],
-            "subject": "Teste Railway",
-            "text": "Teste envio Resend"
-        })
+            "to": [config.email_contact],
+            "subject": f"[CONTATO VETSITE] - {user_subject}",
+            "reply_to": [user_email],
+            "text": full_message,
+        }
 
-        print("RESPOSTA RESEND:", response)
+        response = resend.Emails.send(params=params)
 
-        return Response({
-            "success": True,
-            "response": str(response)
-        })
+        print(response)
+
+        return Response(
+            {"success": "E-mail enviado com sucesso."},
+            status=200
+        )
 
     except Exception as e:
 
-        print("ERRO REAL:", repr(e))
+        print("ERRO RESEND:", repr(e))
 
-        return Response({
-            "error": str(e),
-            "type": type(e).__name__
-        }, status=500)
+        return Response(
+            {"error": str(e)},
+            status=500
+        )
 
 # --- CONFIGURAÇÃO DE CSRF ---
 @method_decorator(ensure_csrf_cookie, name='dispatch')    
