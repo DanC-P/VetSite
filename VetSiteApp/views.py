@@ -47,6 +47,10 @@ def send_contact(request):
     full_message = f"Nome: {user_name}\nE-mail do Cliente: {user_email}\n\nMensagem:\n{user_message}"
 
     try:
+
+        print("EMAIL_HOST_USER:", settings.EMAIL_HOST_USER)
+        print("EMAIL_HOST_PASSWORD:", settings.EMAIL_HOST_PASSWORD)
+
         email = EmailMessage(
             subject=f"[CONTATO VETSITE] - {user_subject}",
             body=full_message,
