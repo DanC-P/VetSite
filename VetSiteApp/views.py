@@ -57,7 +57,7 @@ def send_contact(request):
 
         response = resend.Emails.send({
         "from": "onboarding@resend.dev",
-        "to": [config.email_contact],
+        "to": ["danielsantoscosta18@hotmail.com"],
         "subject": f"[CONTATO VETSITE] - {user_subject}",
         "reply_to": user_email,
         "text": full_message,
