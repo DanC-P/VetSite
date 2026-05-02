@@ -18,7 +18,7 @@ function App() {
 
   const API_URL = process.env.REACT_APP_API_URL || "";
 
-  const logoUrl = config.logo
+  const logoUrl = config?.logo
     ? config.logo.startsWith("http")
       ? config.logo
       : `${API_URL}${config.logo}`
