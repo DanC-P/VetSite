@@ -55,15 +55,13 @@ def send_contact(request):
 
         resend.api_key = settings.RESEND_API_KEY
 
-        params = {
-            "from": "onboarding@resend.dev",
-            "to": [config.email_contact],
-            "subject": f"[CONTATO VETSITE] - {user_subject}",
-            "reply_to": [user_email],
-            "text": full_message,
-        }
-
-        response = resend.Emails.send(params=params)
+        response = resend.Emails.send({
+        "from": "onboarding@resend.dev",
+        "to": [config.email_contact],
+        "subject": f"[CONTATO VETSITE] - {user_subject}",
+        "reply_to": user_email,
+        "text": full_message,
+        })
 
         print(response)
 
@@ -74,12 +72,14 @@ def send_contact(request):
 
     except Exception as e:
 
-        print("ERRO RESEND:", repr(e))
+        import traceback
 
-        return Response(
-            {"error": str(e)},
-            status=500
-        )
+        traceback.print_exc()
+
+        return Response({
+        "error": str(e),
+        "type": type(e).__name__
+        }, status=500)
 
 # --- CONFIGURAÇÃO DE CSRF ---
 @method_decorator(ensure_csrf_cookie, name='dispatch')    
