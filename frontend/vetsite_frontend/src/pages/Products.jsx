@@ -22,7 +22,7 @@ const Products = () => {
 
   const [filters, setFilters] = useState({
     search: "",
-    category: "Todos",
+    category: "todos",
     sortBy: "default",
     onlyFeatured: false,
     onStock: true,
