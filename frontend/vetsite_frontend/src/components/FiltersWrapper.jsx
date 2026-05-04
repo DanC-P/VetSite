@@ -9,6 +9,9 @@ import { Search } from "lucide-react"; // Importação direta para melhor perfor
  * através da função 'updateFilter'.
  */
 const FiltersWrapper = ({ filters, updateFilter, categories }) => {
+  // Formatação da categorias no filtros.
+  const formatCategory = (cat) => cat.charAt(0).toUpperCase() + cat.slice(1);
+
   return (
     <section className="md:sticky z-20 w-full bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-4 md:px-8">
@@ -40,8 +43,8 @@ const FiltersWrapper = ({ filters, updateFilter, categories }) => {
             >
               <option value="Todos">Todas</option>
               {categories.map((cat, idx) => (
-                <option key={idx} value={cat.name || cat}>
-                  {cat.name || cat}
+                <option key={idx} value={cat}>
+                  {formatCategory(cat)}
                 </option>
               ))}
             </select>

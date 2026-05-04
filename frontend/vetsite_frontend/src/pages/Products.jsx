@@ -36,7 +36,9 @@ const Products = () => {
   // Gera a lista de categorias dinamicamente baseada nos produtos
   const categoriesList = [
     "Todos",
-    ...new Set(products.map((p) => p.fr_group).filter(Boolean)),
+    ...new Set(
+      products.map((p) => p.fr_group?.trim().toLowerCase()).filter(Boolean),
+    ),
   ];
 
   useEffect(() => {
