@@ -100,8 +100,8 @@ const Products = () => {
         .includes(filters.search.toLowerCase());
       const matchesCategory =
         filters.category === "Todos" ||
-        product.fr_group === filters.category ||
-        product.fr_group?.name === filters.category;
+        product.fr_group.toUpperCase() === filters.category ||
+        product.fr_group?.name.toUpperCase() === filters.category;
       const matchesFeatured =
         !filters.onlyFeatured || product.is_featured === true;
       const matchesStock = !filters.onStock || product.stock_quantity > 0;
