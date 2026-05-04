@@ -34,7 +34,7 @@ const Products = () => {
   };
 
   // Gera a lista de categorias dinamicamente baseada nos produtos
-  const normalizeCategory = (value) => {
+  const getCategoryValue = (value) => {
     if (!value) return null;
 
     if (typeof value === "object") return value.name?.trim().toLowerCase();
@@ -44,9 +44,8 @@ const Products = () => {
   };
 
   const categoriesList = [
-    "Todos",
     ...new Set(
-      products.map((p) => normalizeCategory(p.fr_group)).filter(Boolean),
+      products.map((p) => getCategoryValue(p.fr_group)).filter(Boolean),
     ),
   ];
 
@@ -95,15 +94,18 @@ const Products = () => {
     .filter((product) => {
       if (!product.is_active) return false;
 
+      const productCategory = getCategoryValue(product.fr_group);
+
       const matchesSearch = product.title
         .toLowerCase()
         .includes(filters.search.toLowerCase());
+
       const matchesCategory =
-        filters.category === "Todos" ||
-        product.fr_group.toUpperCase() === filters.category ||
-        product.fr_group?.name.toUpperCase() === filters.category;
+        filters.category === "todos" || productCategory === filters.category;
+
       const matchesFeatured =
         !filters.onlyFeatured || product.is_featured === true;
+
       const matchesStock = !filters.onStock || product.stock_quantity > 0;
 
       return (
