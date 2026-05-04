@@ -34,9 +34,20 @@ const Products = () => {
   };
 
   // Gera a lista de categorias dinamicamente baseada nos produtos
+  const normalizeCategory = (value) => {
+    if (!value) return null;
+
+    if (typeof value === "object") return value.name?.trim().toLowerCase();
+    if (typeof value === "string") return value.trim().toLowerCase();
+
+    return null;
+  };
+
   const categoriesList = [
     "Todos",
-    ...new Set(products.map((p) => p.fr_group?.toLowerCase()).filter(Boolean)),
+    ...new Set(
+      products.map((p) => normalizeCategory(p.fr_group)).filter(Boolean),
+    ),
   ];
 
   useEffect(() => {
